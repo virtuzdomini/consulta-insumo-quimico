@@ -1,6 +1,6 @@
 <script lang="ts">
     // ================================================================
-    //  Tela principal — Consulta de Insumo Químico (Client-side Fix)
+    //  Tela principal — Consulta de Insumo Químico (Pente Fino)
     //  Aqui mora TODO o estado reativo da busca (runes do Svelte 5).
     // ================================================================
     import Cabecalho from '$lib/components/Cabecalho.svelte';
@@ -20,7 +20,7 @@
     let mostrarBuscaNoCabecalho = $derived(estado !== 'vazio');
     let idBuscaAtual = 0;
 
-// ---- Ação principal: consultar a API DIRETO DO PUBCHEM ----------
+    // ---- Ação principal: consultar a API DIRETO DO PUBCHEM ----------
     async function buscar() {
         const nomeOriginal = termo.trim();
         if (!nomeOriginal) return;
@@ -32,9 +32,7 @@
         resultado = null;
 
         try {
-            // 1. Tenta buscar o CID (ID do Composto). O PubChem aceita alguns nomes em português 
-            // no endpoint geral de busca, mas falha no endpoint de propriedades se não for em inglês.
-            // Buscando pelo endpoint de 'search' resolvemos a tradução automática para a maioria dos casos!
+            // 1. Tenta buscar o CID (ID do Composto). O PubChem aceita nomes comuns em português aqui
             const urlCid = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(nomeOriginal)}/cids/JSON`;
             const respostaCid = await fetch(urlCid);
             
@@ -55,7 +53,7 @@
                 return;
             }
 
-            // 2. Agora que temos o CID numérico seguro, fazemos requisições paralelas para buscar as propriedades
+            // 2. Requisições paralelas para buscar as propriedades físicas e sinônimos
             const urlPropriedades = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/property/MolecularFormula,MolecularWeight,IUPACName/JSON`;
             const urlSinonimos = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/synonyms/JSON`;
 
@@ -71,18 +69,30 @@
                 const dadosSinos = respSinos.ok ? await respSinos.json() : {};
                 
                 const propriedade = dadosProps.PropertyTable?.Properties?.[0];
-                const listaSinonimos = dadosSinos.InformationList?.Information?.[0]?.Synonym || [];
+                const listaSinonimosRaw: string[] = dadosSinos.InformationList?.Information?.[0]?.Synonym || [];
 
                 if (propriedade) {
-                    // 3. Montando a lista de Propriedades no formato chave-valor que o CartaoResultado espera
+                    // 3. Montando a lista de propriedades formatadas de maneira limpa
                     const propriedadesFormatadas = [
                         { nome: 'Massa Molar', valor: propriedade.MolecularWeight ? `${propriedade.MolecularWeight} g/mol` : 'Não disponível' },
                         { nome: 'Fórmula Molecular', valor: propriedade.MolecularFormula || 'Não disponível' },
                         { nome: 'ID do Composto (CID)', valor: String(propriedade.CID) }
                     ];
 
-                    // Pegamos os 5 primeiros sinônimos encontrados para não poluir a tela
-                    const sinonimosFormatados = listaSinonimos.slice(0, 5);
+                    // 4. PENTE FINO ANTI-DUPLICADAS: Filtra duplicatas textuais ignorando maiúsculas/minúsculas
+                    const vistos = new Set<string>();
+                    const sinonimosLimpos: string[] = [];
+
+                    for (const sin of listaSinonimosRaw) {
+                        const normalizado = sin.trim().toLowerCase();
+                        if (!vistos.has(normalizado)) {
+                            vistos.add(normalizado);
+                            sinonimosLimpos.push(sin.trim()); // mantém a grafia original visualmente
+                        }
+                    }
+
+                    // Pegamos os 5 primeiros sinônimos higienizados
+                    const sinonimosFormatados = sinonimosLimpos.slice(0, 5);
 
                     resultado = {
                         cid: propriedade.CID,
@@ -91,8 +101,8 @@
                         formula: propriedade.MolecularFormula || '',
                         massaMolar: propriedade.MolecularWeight ? `${propriedade.MolecularWeight} g/mol` : 'Não disponível',
                         imagemUrl: `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${propriedade.CID}/PNG`,
-                        propriedades: propriedadesFormatadas, // Populado corretamente!
-                        sinonimos: sinonimosFormatados // Populado corretamente!
+                        propriedades: propriedadesFormatadas,
+                        sinonimos: sinonimosFormatados
                     };
 
                     estado = 'resultado';
