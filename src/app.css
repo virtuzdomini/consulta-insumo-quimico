@@ -1,0 +1,87 @@
+/*
+  app.css — estilos globais + design tokens da direção "1b — Painel laboratorial".
+
+  Todos os valores abaixo foram extraídos 1:1 do bundle do Claude Design.
+  Centralizar em variáveis CSS (custom properties) evita repetir hex solto
+  pelos componentes e deixa a identidade visual num lugar só.
+*/
+
+:root {
+	/* ---- Superfícies (do mais escuro/fundo ao mais claro/elevado) ---- */
+	--cor-canvas: #101316; /* tela atrás do painel (dá o efeito flutuante) */
+	--cor-fundo: #15181c; /* fundo da aplicação (dentro do painel) */
+	--cor-cabecalho: #1a1f24; /* barra de topo */
+	--cor-painel: #1d2228; /* cartão e barra de busca */
+	--cor-painel-elevado: #191e23; /* coluna da estrutura e cartões de propriedade */
+
+	/* ---- Bordas ---- */
+	--cor-borda: #2c343c; /* borda padrão dos painéis */
+	--cor-borda-sutil: #232a30; /* divisórias do cabeçalho */
+	--cor-borda-tracejada: #333d45; /* moldura do visor da estrutura */
+
+	/* ---- Acento (ciano científico) ---- */
+	--cor-acento: #34b5e0;
+	--cor-acento-texto: #0e1416; /* texto legível SOBRE o acento */
+	--cor-acento-suave: rgba(52, 181, 224, 0.1); /* preenchimento do selo "Identificado" */
+	--cor-acento-borda: rgba(52, 181, 224, 0.35);
+
+	/* ---- Texto ---- */
+	--cor-texto: #eef2f5; /* títulos e valores de destaque */
+	--cor-texto-secundario: #93a0a8; /* subtítulos e apoio */
+	--cor-texto-terciario: #7c8890; /* labels do cabeçalho */
+	--cor-texto-mono: #8894a1; /* labels monoespaçados das propriedades */
+	--cor-texto-fraco: #6a767e; /* legendas menores */
+	--cor-chip: #c6cfd5; /* texto dos chips (sinônimos/recentes) */
+
+	/* ---- Feedback ---- */
+	--cor-erro: #e0685f;
+	--cor-erro-suave: rgba(224, 104, 95, 0.1);
+	--cor-erro-borda: rgba(224, 104, 95, 0.35);
+
+	/* ---- Tipografia ---- */
+	--fonte-ui: 'Manrope', system-ui, -apple-system, sans-serif;
+	--fonte-mono: 'IBM Plex Mono', 'SFMono-Regular', ui-monospace, monospace;
+
+	/* ---- Raios ---- */
+	--raio-cartao: 16px;
+	--raio-painel: 12px;
+	--raio-pilula: 999px;
+	--raio-chip: 8px;
+
+	/* ---- Sombra do cartão flutuante ---- */
+	--sombra-cartao: 0 30px 70px -30px rgba(0, 0, 0, 0.7);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	min-height: 100%;
+}
+
+body {
+	background: var(--cor-canvas);
+	color: var(--cor-texto);
+	font-family: var(--fonte-ui);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove estilos de botão nativo — usamos <button> semântico em vários
+   componentes mas estilizamos do zero. */
+button {
+	font-family: inherit;
+	cursor: pointer;
+	border: none;
+	background: none;
+	color: inherit;
+}
+
+/* Foco visível e coerente com o acento, por acessibilidade de teclado. */
+:focus-visible {
+	outline: 2px solid var(--cor-acento);
+	outline-offset: 2px;
+}

@@ -1,0 +1,16 @@
+{
+	// O SvelteKit gera um tsconfig base em .svelte-kit/tsconfig.json com os
+	// caminhos ($lib, etc.) e a gente só o estende. Não edite o gerado.
+	"extends": "./.svelte-kit/tsconfig.json",
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strict": true,
+		"moduleResolution": "bundler"
+	}
+}

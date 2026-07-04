@@ -1,0 +1,45 @@
+// Tipos compartilhados entre o servidor (endpoint) e o cliente (página).
+// Deixar isso num arquivo só garante que os dois lados falem a "mesma língua".
+
+/**
+ * Uma propriedade físico-química já formatada para exibição no cartão.
+ * `valor` e `unidade` são separados para o layout poder estilizar a unidade
+ * menor (ex.: "63,6" grande + "Å²" pequeno), como no design.
+ */
+export interface Propriedade {
+	rotulo: string; // ex.: "logP"
+	valor: string; // ex.: "1,19"
+	unidade?: string; // ex.: "Å²"
+	descricao: string; // ex.: "lipofilicidade"
+}
+
+/**
+ * O resultado completo de uma consulta bem-sucedida à PubChem.
+ * É exatamente a forma que o endpoint /api/consulta devolve em JSON.
+ */
+export interface ResultadoConsulta {
+	cid: number; // PubChem Compound ID
+	nome: string; // nome de exibição (o termo buscado, capitalizado)
+	nomeIupac: string | null; // nome IUPAC oficial
+	formula: string; // fórmula molecular já com subscritos (ex.: C₉H₈O₄)
+	massaMolar: string; // ex.: "180,16 g/mol"
+	cas: string | null; // número CAS extraído dos sinônimos (ex.: 50-78-2)
+	propriedades: Propriedade[]; // logP, TPSA, doadores/aceptores de H
+	sinonimos: string[]; // lista curada de sinônimos
+	imagemUrl: string; // URL do PNG 2D no PubChem
+}
+
+/**
+ * Resposta de erro padronizada do endpoint. `tipo` deixa o cliente
+ * distinguir "não achei a substância" de "a rede/PubChem falhou".
+ */
+export interface ErroConsulta {
+	tipo: 'nao_encontrado' | 'falha';
+	mensagem: string;
+}
+
+/**
+ * Estados possíveis da tela. Modelar isso como união de strings deixa o
+ * `+page.svelte` alternar a UI de forma exaustiva e sem ambiguidade.
+ */
+export type EstadoBusca = 'vazio' | 'carregando' | 'resultado' | 'erro';

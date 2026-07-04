@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#25282c;padding:56px 64px 96px;font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased">
+
+  <div style="margin-bottom:44px">
+    <div style="font:500 12px 'IBM Plex Mono';letter-spacing:.16em;color:#7f8b91;margin-bottom:10px">CIQ · IDENTIDADE VISUAL + TELA PRINCIPAL</div>
+    <h1 style="margin:0;font:700 30px 'IBM Plex Sans';color:#eef2f4;letter-spacing:-.01em">Consulta de Insumo Químico — 2 direções visuais</h1>
+    <p style="margin:10px 0 0;font:400 15px 'IBM Plex Sans';color:#9aa5ab;max-width:720px">Cada direção mostra o estado vazio (antes da busca) e o estado com resultado, usando ácido acetilsalicílico como exemplo. Refira uma direção pelo código <span style="font-family:'IBM Plex Mono';color:#cdd5d9">1a</span> ou <span style="font-family:'IBM Plex Mono';color:#cdd5d9">1b</span> no chat.</p>
+  </div>
+
+  <section style="display:flex;gap:72px;align-items:flex-start;flex-wrap:nowrap;width:max-content">
+
+    <!-- ============ OPTION 1a — CONSOLE ============ -->
+    <div id="1a" style="display:flex;flex-direction:column;gap:22px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <span style="font:600 13px 'IBM Plex Mono';color:#0d1012;background:#19b9a6;border-radius:6px;padding:5px 11px;letter-spacing:.04em">1a</span>
+        <span style="font:600 17px 'IBM Plex Sans';color:#eef2f4">Console de instrumento</span>
+        <span style="font:400 13px 'IBM Plex Sans';color:#889298">grafite profundo · verde-petróleo · dados em monoespaçada</span>
+      </div>
+
+      <!-- EMPTY STATE A -->
+      <div style="width:1120px;border-radius:15px;overflow:hidden;border:1px solid #232a2e;box-shadow:0 30px 70px -30px rgba(0,0,0,.7)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:17px 28px;border-bottom:1px solid #202629;background:#0f1315">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:27px;height:27px;border:1.5px solid #19b9a6;border-radius:7px;display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;background:#19b9a6;border-radius:2px"></div></div>
+            <span style="font:600 15px 'IBM Plex Sans';color:#e8edf0;letter-spacing:.02em">CIQ</span>
+            <span style="width:1px;height:16px;background:#2a3236"></span>
+            <span style="font:400 13px 'IBM Plex Sans';color:#8b979d">Consulta de Insumo Químico</span>
+          </div>
+          <span style="font:500 11px 'IBM Plex Mono';color:#5f6b70;letter-spacing:.1em">BASE RDKIT · v2.4</span>
+        </div>
+        <div style="background:#0d1012;padding:118px 90px 130px;display:flex;flex-direction:column;align-items:center;text-align:center">
+          <span style="font:500 11px 'IBM Plex Mono';color:#19b9a6;letter-spacing:.22em;margin-bottom:22px">IDENTIFICAÇÃO DE SUBSTÂNCIAS</span>
+          <h2 style="margin:0 0 14px;font:600 38px 'IBM Plex Sans';color:#eef2f4;letter-spacing:-.02em">Consulte um insumo químico</h2>
+          <p style="margin:0 0 40px;font:400 16px 'IBM Plex Sans';color:#8b979d;max-width:440px;line-height:1.5">Busque por nome, sinônimo ou CAS e receba a ficha técnica com estrutura e propriedades físico-químicas.</p>
+          <div style="width:640px;display:flex;align-items:center;gap:14px;background:#14181b;border:1.5px solid #19b9a6;border-radius:12px;padding:0 18px;height:62px;box-shadow:0 0 0 4px rgba(25,185,166,.09)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#19b9a6" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
+            <span style="flex:1;text-align:left;font:400 16px 'IBM Plex Sans';color:#6f7b81">Digite o nome da substância…</span>
+            <span style="width:2px;height:22px;background:#19b9a6;border-radius:2px"></span>
+            <span style="font:500 11px 'IBM Plex Mono';color:#8b979d;border:1px solid #2a343a;border-radius:5px;padding:5px 8px;letter-spacing:.06em">↵ BUSCAR</span>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:22px">
+            <span style="font:400 13px 'IBM Plex Mono';color:#8b979d">Exemplos:</span>
+            <span style="font:400 13px 'IBM Plex Mono';color:#c3ccd0;border:1px solid #232a2e;border-radius:999px;padding:5px 13px">dióxido de titânio</span>
+            <span style="font:400 13px 'IBM Plex Mono';color:#c3ccd0;border:1px solid #232a2e;border-radius:999px;padding:5px 13px">xileno</span>
+            <span style="font:400 13px 'IBM Plex Mono';color:#c3ccd0;border:1px solid #232a2e;border-radius:999px;padding:5px 13px">etilenoglicol</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULT STATE A -->
+      <div style="width:1120px;border-radius:15px;overflow:hidden;border:1px solid #232a2e;box-shadow:0 30px 70px -30px rgba(0,0,0,.7)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:17px 28px;border-bottom:1px solid #202629;background:#0f1315">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:27px;height:27px;border:1.5px solid #19b9a6;border-radius:7px;display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;background:#19b9a6;border-radius:2px"></div></div>
+            <span style="font:600 15px 'IBM Plex Sans';color:#e8edf0;letter-spacing:.02em">CIQ</span>
+            <span style="width:1px;height:16px;background:#2a3236"></span>
+            <span style="font:400 13px 'IBM Plex Sans';color:#8b979d">Consulta de Insumo Químico</span>
+          </div>
+          <span style="font:500 11px 'IBM Plex Mono';color:#5f6b70;letter-spacing:.1em">BASE RDKIT · v2.4</span>
+        </div>
+        <div style="background:#0d1012;padding:26px 28px 32px">
+          <!-- filled search -->
+          <div style="width:100%;display:flex;align-items:center;gap:14px;background:#14181b;border:1.5px solid #263036;border-radius:12px;padding:0 18px;height:56px;margin-bottom:24px">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#8b979d" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
+            <span style="flex:1;text-align:left;font:400 16px 'IBM Plex Sans';color:#e8edf0">ácido acetilsalicílico</span>
+            <span style="font:400 12px 'IBM Plex Mono';color:#5f6b70">1 correspondência</span>
+          </div>
+
+          <!-- card -->
+          <div style="border:1px solid #232a2e;border-radius:14px;overflow:hidden;background:#14181b">
+            <!-- header -->
+            <div style="padding:26px 30px;border-bottom:1px solid #232a2e;display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div style="font:500 11px 'IBM Plex Mono';color:#5f6b70;letter-spacing:.14em;margin-bottom:9px">RESULTADO · PubChem CID 2244</div>
+                <h3 style="margin:0 0 12px;font:600 27px 'IBM Plex Sans';color:#eef2f4;letter-spacing:-.01em">Ácido acetilsalicílico</h3>
+                <div style="display:flex;align-items:center;gap:18px">
+                  <span style="font:500 17px 'IBM Plex Mono';color:#19b9a6">C₉H₈O₄</span>
+                  <span style="width:1px;height:15px;background:#2a3236"></span>
+                  <span style="font:400 14px 'IBM Plex Sans';color:#9aa5ab">massa molar <span style="font-family:'IBM Plex Mono';color:#d3dbdf">180,16 g/mol</span></span>
+                  <span style="width:1px;height:15px;background:#2a3236"></span>
+                  <span style="font:400 14px 'IBM Plex Sans';color:#9aa5ab">CAS <span style="font-family:'IBM Plex Mono';color:#d3dbdf">50-78-2</span></span>
+                </div>
+              </div>
+              <span style="font:500 11px 'IBM Plex Mono';color:#19b9a6;border:1px solid rgba(25,185,166,.4);background:rgba(25,185,166,.08);border-radius:6px;padding:6px 11px;letter-spacing:.08em">✓ IDENTIFICADO</span>
+            </div>
+            <!-- body grid -->
+            <div style="display:grid;grid-template-columns:380px 1fr">
+              <!-- structure -->
+              <div style="padding:26px 30px;border-right:1px solid #232a2e">
+                <div style="font:500 11px 'IBM Plex Mono';color:#5f6b70;letter-spacing:.14em;margin-bottom:16px">ESTRUTURA 2D</div>
+                <div style="height:280px;border:1px dashed #2c353a;border-radius:11px;background:#0f1315;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+                  <svg width="120" height="120" viewBox="0 0 100 100" fill="none" stroke="#2f3a3f" stroke-width="2"><polygon points="82,50 66,77.7 34,77.7 18,50 34,22.3 66,22.3"/><circle cx="50" cy="50" r="20"/></svg>
+                  <span style="font:400 11px 'IBM Plex Mono';color:#5f6b70;letter-spacing:.04em">renderização RDKit · C₉H₈O₄</span>
+                </div>
+              </div>
+              <!-- props -->
+              <div style="padding:26px 30px">
+                <div style="font:500 11px 'IBM Plex Mono';color:#5f6b70;letter-spacing:.14em;margin-bottom:16px">PROPRIEDADES FÍSICO-QUÍMICAS</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                  <div style="border:1px solid #232a2e;border-radius:10px;padding:17px 19px;background:#0f1315">
+                    <div style="font:500 11px 'IBM Plex Mono';color:#8b979d;letter-spacing:.06em;margin-bottom:9px">logP</div>
+                    <div style="font:500 26px 'IBM Plex Mono';color:#eef2f4;line-height:1">1,19</div>
+                    <div style="font:400 12px 'IBM Plex Sans';color:#6f7b81;margin-top:7px">lipofilicidade</div>
+                  </div>
+                  <div style="border:1px solid #232a2e;border-radius:10px;padding:17px 19px;background:#0f1315">
+                    <div style="font:500 11px 'IBM Plex Mono';color:#8b979d;letter-spacing:.06em;margin-bottom:9px">TPSA</div>
+                    <div style="font:500 26px 'IBM Plex Mono';color:#eef2f4;line-height:1">63,6 <span style="font-size:15px;color:#8b979d">Å²</span></div>
+                    <div style="font:400 12px 'IBM Plex Sans';color:#6f7b81;margin-top:7px">área polar superficial</div>
+                  </div>
+                  <div style="border:1px solid #232a2e;border-radius:10px;padding:17px 19px;background:#0f1315">
+                    <div style="font:500 11px 'IBM Plex Mono';color:#8b979d;letter-spacing:.06em;margin-bottom:9px">DOADORES H</div>
+                    <div style="font:500 26px 'IBM Plex Mono';color:#eef2f4;line-height:1">1</div>
+                    <div style="font:400 12px 'IBM Plex Sans';color:#6f7b81;margin-top:7px">ligações de hidrogênio</div>
+                  </div>
+                  <div style="border:1px solid #232a2e;border-radius:10px;padding:17px 19px;background:#0f1315">
+                    <div style="font:500 11px 'IBM Plex Mono';color:#8b979d;letter-spacing:.06em;margin-bottom:9px">ACEPTORES H</div>
+                    <div style="font:500 26px 'IBM Plex Mono';color:#eef2f4;line-height:1">4</div>
+                    <div style="font:400 12px 'IBM Plex Sans';color:#6f7b81;margin-top:7px">ligações de hidrogênio</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- synonyms -->
+            <div style="padding:22px 30px;border-top:1px solid #232a2e">
+              <div style="font:500 11px 'IBM Plex Mono';color:#5f6b70;letter-spacing:.14em;margin-bottom:14px">SINÔNIMOS</div>
+              <div style="display:flex;flex-wrap:wrap;gap:9px">
+                <span style="font:400 13px 'IBM Plex Sans';color:#c3ccd0;background:#0f1315;border:1px solid #232a2e;border-radius:7px;padding:6px 12px">Aspirina</span>
+                <span style="font:400 13px 'IBM Plex Sans';color:#c3ccd0;background:#0f1315;border:1px solid #232a2e;border-radius:7px;padding:6px 12px">AAS</span>
+                <span style="font:400 13px 'IBM Plex Sans';color:#c3ccd0;background:#0f1315;border:1px solid #232a2e;border-radius:7px;padding:6px 12px">Ácido 2-(acetiloxi)benzoico</span>
+                <span style="font:400 13px 'IBM Plex Sans';color:#c3ccd0;background:#0f1315;border:1px solid #232a2e;border-radius:7px;padding:6px 12px">2-acetoxybenzoic acid</span>
+                <span style="font:400 13px 'IBM Plex Sans';color:#c3ccd0;background:#0f1315;border:1px solid #232a2e;border-radius:7px;padding:6px 12px">Acetylsalicylic acid</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 1b — PANEL ============ -->
+    <div id="1b" style="display:flex;flex-direction:column;gap:22px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <span style="font:600 13px 'IBM Plex Mono';color:#0e1416;background:#34b5e0;border-radius:6px;padding:5px 11px;letter-spacing:.04em">1b</span>
+        <span style="font:600 17px 'IBM Plex Sans';color:#eef2f4">Painel laboratorial</span>
+        <span style="font:400 13px 'IBM Plex Sans';color:#889298">grafite elevado · ciano científico · painéis arejados</span>
+      </div>
+
+      <!-- EMPTY STATE B -->
+      <div style="width:1120px;border-radius:18px;overflow:hidden;border:1px solid #2c343c;box-shadow:0 30px 70px -30px rgba(0,0,0,.7)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 30px;border-bottom:1px solid #232a30;background:#1a1f24">
+          <div style="display:flex;align-items:center;gap:13px">
+            <div style="width:30px;height:30px;background:#34b5e0;border-radius:9px;display:flex;align-items:center;justify-content:center;font:800 13px 'Manrope';color:#0e1416">Ci</div>
+            <div style="display:flex;flex-direction:column;line-height:1.15">
+              <span style="font:800 15px 'Manrope';color:#eef2f5;letter-spacing:.01em">Consulta de Insumo Químico</span>
+              <span style="font:500 11px 'IBM Plex Mono';color:#7c8890;letter-spacing:.08em">LABORATÓRIO · INDÚSTRIA DE TINTAS</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;border-radius:50%;background:#34b5e0"></span><span style="font:500 12px 'IBM Plex Mono';color:#7c8890">base online</span></div>
+        </div>
+        <div style="background:#15181c;padding:120px 90px 132px;display:flex;flex-direction:column;align-items:center;text-align:center">
+          <h2 style="margin:0 0 16px;font:800 40px 'Manrope';color:#eef2f5;letter-spacing:-.025em;line-height:1.1">O que você quer<br>consultar hoje?</h2>
+          <p style="margin:0 0 44px;font:500 16px 'Manrope';color:#93a0a8;max-width:430px;line-height:1.5">Nome, sinônimo ou número CAS. A ficha técnica aparece em segundos.</p>
+          <div style="width:660px;display:flex;align-items:center;gap:8px;background:#1d2228;border:1.5px solid #2c343c;border-radius:999px;padding:8px 8px 8px 24px;height:66px;box-shadow:0 12px 40px -18px rgba(52,181,224,.45)">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#93a0a8" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
+            <span style="flex:1;text-align:left;font:500 17px 'Manrope';color:#727f87">Buscar substância…</span>
+            <span style="font:700 14px 'Manrope';color:#0e1416;background:#34b5e0;border-radius:999px;padding:13px 28px">Buscar</span>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:24px;align-items:center">
+            <span style="font:600 13px 'Manrope';color:#727f87">Recentes:</span>
+            <span style="font:500 13px 'Manrope';color:#c6cfd5;background:#1d2228;border:1px solid #2c343c;border-radius:999px;padding:7px 15px">dióxido de titânio</span>
+            <span style="font:500 13px 'Manrope';color:#c6cfd5;background:#1d2228;border:1px solid #2c343c;border-radius:999px;padding:7px 15px">tolueno</span>
+            <span style="font:500 13px 'Manrope';color:#c6cfd5;background:#1d2228;border:1px solid #2c343c;border-radius:999px;padding:7px 15px">butilglicol</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULT STATE B -->
+      <div style="width:1120px;border-radius:18px;overflow:hidden;border:1px solid #2c343c;box-shadow:0 30px 70px -30px rgba(0,0,0,.7)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 30px;border-bottom:1px solid #232a30;background:#1a1f24">
+          <div style="display:flex;align-items:center;gap:13px">
+            <div style="width:30px;height:30px;background:#34b5e0;border-radius:9px;display:flex;align-items:center;justify-content:center;font:800 13px 'Manrope';color:#0e1416">Ci</div>
+            <div style="display:flex;flex-direction:column;line-height:1.15">
+              <span style="font:800 15px 'Manrope';color:#eef2f5;letter-spacing:.01em">Consulta de Insumo Químico</span>
+              <span style="font:500 11px 'IBM Plex Mono';color:#7c8890;letter-spacing:.08em">LABORATÓRIO · INDÚSTRIA DE TINTAS</span>
+            </div>
+          </div>
+          <div style="width:420px;display:flex;align-items:center;gap:10px;background:#1d2228;border:1.5px solid #2c343c;border-radius:999px;padding:0 8px 0 18px;height:44px">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#93a0a8" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
+            <span style="flex:1;font:600 14px 'Manrope';color:#eef2f5">ácido acetilsalicílico</span>
+          </div>
+        </div>
+        <div style="background:#15181c;padding:30px">
+          <div style="border:1px solid #2c343c;border-radius:16px;overflow:hidden;background:#1d2228">
+            <div style="display:grid;grid-template-columns:400px 1fr">
+              <!-- structure left -->
+              <div style="padding:28px;background:#191e23;border-right:1px solid #2c343c;display:flex;flex-direction:column">
+                <div style="font:600 11px 'IBM Plex Mono';color:#7c8890;letter-spacing:.14em;margin-bottom:18px">ESTRUTURA MOLECULAR 2D</div>
+                <div style="flex:1;min-height:270px;border-radius:13px;background:#15181c;border:1px dashed #333d45;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+                  <svg width="130" height="130" viewBox="0 0 100 100" fill="none" stroke="#3a454d" stroke-width="2"><polygon points="82,50 66,77.7 34,77.7 18,50 34,22.3 66,22.3"/><circle cx="50" cy="50" r="20"/></svg>
+                  <span style="font:400 11px 'IBM Plex Mono';color:#6a767e;letter-spacing:.04em">renderização RDKit</span>
+                </div>
+                <div style="margin-top:16px;display:flex;gap:8px">
+                  <span style="flex:1;text-align:center;font:600 12px 'Manrope';color:#c6cfd5;background:#1d2228;border:1px solid #2c343c;border-radius:8px;padding:9px">Ampliar</span>
+                  <span style="flex:1;text-align:center;font:600 12px 'Manrope';color:#c6cfd5;background:#1d2228;border:1px solid #2c343c;border-radius:8px;padding:9px">Baixar SVG</span>
+                </div>
+              </div>
+              <!-- info right -->
+              <div style="padding:28px 30px">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px">
+                  <div>
+                    <h3 style="margin:0 0 10px;font:800 26px 'Manrope';color:#eef2f5;letter-spacing:-.015em">Ácido acetilsalicílico</h3>
+                    <div style="display:flex;align-items:center;gap:16px">
+                      <span style="font:500 17px 'IBM Plex Mono';color:#34b5e0">C₉H₈O₄</span>
+                      <span style="font:500 14px 'Manrope';color:#93a0a8">180,16 g/mol</span>
+                      <span style="font:500 13px 'IBM Plex Mono';color:#727f87">CAS 50-78-2</span>
+                    </div>
+                  </div>
+                  <span style="font:700 11px 'Manrope';color:#34b5e0;background:rgba(52,181,224,.1);border:1px solid rgba(52,181,224,.35);border-radius:999px;padding:6px 13px;letter-spacing:.03em">Identificado</span>
+                </div>
+
+                <div style="font:600 11px 'IBM Plex Mono';color:#7c8890;letter-spacing:.14em;margin-bottom:13px">PROPRIEDADES</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:26px">
+                  <div style="background:#191e23;border:1px solid #2c343c;border-radius:12px;padding:16px 15px">
+                    <div style="font:500 11px 'IBM Plex Mono';color:#8894a1;margin-bottom:9px">logP</div>
+                    <div style="font:800 24px 'Manrope';color:#eef2f5;line-height:1">1,19</div>
+                    <div style="font:500 11px 'Manrope';color:#6a767e;margin-top:6px">lipofilicidade</div>
+                  </div>
+                  <div style="background:#191e23;border:1px solid #2c343c;border-radius:12px;padding:16px 15px">
+                    <div style="font:500 11px 'IBM Plex Mono';color:#8894a1;margin-bottom:9px">TPSA</div>
+                    <div style="font:800 24px 'Manrope';color:#eef2f5;line-height:1">63,6</div>
+                    <div style="font:500 11px 'Manrope';color:#6a767e;margin-top:6px">Å² área polar</div>
+                  </div>
+                  <div style="background:#191e23;border:1px solid #2c343c;border-radius:12px;padding:16px 15px">
+                    <div style="font:500 11px 'IBM Plex Mono';color:#8894a1;margin-bottom:9px">Doadores H</div>
+                    <div style="font:800 24px 'Manrope';color:#eef2f5;line-height:1">1</div>
+                    <div style="font:500 11px 'Manrope';color:#6a767e;margin-top:6px">de hidrogênio</div>
+                  </div>
+                  <div style="background:#191e23;border:1px solid #2c343c;border-radius:12px;padding:16px 15px">
+                    <div style="font:500 11px 'IBM Plex Mono';color:#8894a1;margin-bottom:9px">Aceptores H</div>
+                    <div style="font:800 24px 'Manrope';color:#eef2f5;line-height:1">4</div>
+                    <div style="font:500 11px 'Manrope';color:#6a767e;margin-top:6px">de hidrogênio</div>
+                  </div>
+                </div>
+
+                <div style="font:600 11px 'IBM Plex Mono';color:#7c8890;letter-spacing:.14em;margin-bottom:13px">SINÔNIMOS</div>
+                <div style="display:flex;flex-wrap:wrap;gap:9px">
+                  <span style="font:500 13px 'Manrope';color:#c6cfd5;background:#191e23;border:1px solid #2c343c;border-radius:999px;padding:7px 14px">Aspirina</span>
+                  <span style="font:500 13px 'Manrope';color:#c6cfd5;background:#191e23;border:1px solid #2c343c;border-radius:999px;padding:7px 14px">AAS</span>
+                  <span style="font:500 13px 'Manrope';color:#c6cfd5;background:#191e23;border:1px solid #2c343c;border-radius:999px;padding:7px 14px">Ácido 2-(acetiloxi)benzoico</span>
+                  <span style="font:500 13px 'Manrope';color:#c6cfd5;background:#191e23;border:1px solid #2c343c;border-radius:999px;padding:7px 14px">2-acetoxybenzoic acid</span>
+                  <span style="font:500 13px 'Manrope';color:#c6cfd5;background:#191e23;border:1px solid #2c343c;border-radius:999px;padding:7px 14px">Acetylsalicylic acid</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</div>
+</x-dc>
+</body>
+</html>
