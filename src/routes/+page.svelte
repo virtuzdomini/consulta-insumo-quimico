@@ -20,51 +20,88 @@
     let mostrarBuscaNoCabecalho = $derived(estado !== 'vazio');
     let idBuscaAtual = 0;
 
-    // ---- Ação principal: consultar a API DIRETO DO PUBCHEM ----------
+// ---- Ação principal: consultar a API DIRETO DO PUBCHEM ----------
     async function buscar() {
-        const nome = termo.trim();
-        if (!nome) return;
+        const nomeOriginal = termo.trim();
+        if (!nomeOriginal) return;
 
         const meuId = ++idBuscaAtual;
-        termoConsultado = nome;
+        termoConsultado = nomeOriginal;
         estado = 'carregando';
         erro = null;
         resultado = null;
 
         try {
-            const urlPubChem = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(nome)}/property/MolecularFormula,MolecularWeight,IUPACName/JSON`;
-            const resposta = await fetch(urlPubChem);
+            // 1. Tenta buscar o CID (ID do Composto). O PubChem aceita alguns nomes em português 
+            // no endpoint geral de busca, mas falha no endpoint de propriedades se não for em inglês.
+            // Buscando pelo endpoint de 'search' resolvemos a tradução automática para a maioria dos casos!
+            const urlCid = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(nomeOriginal)}/cids/JSON`;
+            const respostaCid = await fetch(urlCid);
+            
+            if (meuId !== idBuscaAtual) return;
+
+            if (!respostaCid.ok) {
+                erro = { tipo: 'nao_encontrado', mensagem: 'Substância não encontrada na base do PubChem.' };
+                estado = 'erro';
+                return;
+            }
+
+            const dadosCid = await respostaCid.json();
+            const cid = dadosCid.IdentifierList?.CID?.[0];
+
+            if (!cid) {
+                erro = { tipo: 'nao_encontrado', mensagem: 'Substância não encontrada.' };
+                estado = 'erro';
+                return;
+            }
+
+            // 2. Agora que temos o CID numérico seguro, fazemos requisições paralelas para buscar as propriedades
+            const urlPropriedades = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/property/MolecularFormula,MolecularWeight,IUPACName/JSON`;
+            const urlSinonimos = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/synonyms/JSON`;
+
+            const [respProps, respSinos] = await Promise.all([
+                fetch(urlPropriedades),
+                fetch(urlSinonimos)
+            ]);
 
             if (meuId !== idBuscaAtual) return;
 
-            if (resposta.ok) {
-                const dados = await resposta.json();
-                const propriedade = dados.PropertyTable?.Properties?.[0];
+            if (respProps.ok) {
+                const dadosProps = await respProps.json();
+                const dadosSinos = respSinos.ok ? await respSinos.json() : {};
+                
+                const propriedade = dadosProps.PropertyTable?.Properties?.[0];
+                const listaSinonimos = dadosSinos.InformationList?.Information?.[0]?.Synonym || [];
 
                 if (propriedade) {
-                    // Montando o objeto exatamente com as chaves que o Svelte costuma pedir para não dar undefined
+                    // 3. Montando a lista de Propriedades no formato chave-valor que o CartaoResultado espera
+                    const propriedadesFormatadas = [
+                        { nome: 'Massa Molar', valor: propriedade.MolecularWeight ? `${propriedade.MolecularWeight} g/mol` : 'Não disponível' },
+                        { nome: 'Fórmula Molecular', valor: propriedade.MolecularFormula || 'Não disponível' },
+                        { nome: 'ID do Composto (CID)', valor: String(propriedade.CID) }
+                    ];
+
+                    // Pegamos os 5 primeiros sinônimos encontrados para não poluir a tela
+                    const sinonimosFormatados = listaSinonimos.slice(0, 5);
+
                     resultado = {
                         cid: propriedade.CID,
-                        nome: nome,
+                        nome: nomeOriginal.toUpperCase(),
                         nomeIupac: propriedade.IUPACName || 'Não disponível',
                         formula: propriedade.MolecularFormula || '',
                         massaMolar: propriedade.MolecularWeight ? `${propriedade.MolecularWeight} g/mol` : 'Não disponível',
                         imagemUrl: `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${propriedade.CID}/PNG`,
-                        // Caso seu tipo exija propriedades extras, inicializamos vazias para evitar o erro de 'length'
-                        propriedades: [],
-                        sinonimos: []
+                        propriedades: propriedadesFormatadas, // Populado corretamente!
+                        sinonimos: sinonimosFormatados // Populado corretamente!
                     };
 
                     estado = 'resultado';
                 } else {
-                    erro = { tipo: 'nao_encontrado', mensagem: 'Substância não encontrada na base do PubChem.' };
+                    erro = { tipo: 'nao_encontrado', mensagem: 'Erro ao processar as propriedades da substância.' };
                     estado = 'erro';
                 }
             } else {
-                erro = {
-                    tipo: resposta.status === 404 ? 'nao_encontrado' : 'falha',
-                    mensagem: resposta.status === 404 ? 'Substância não encontrada.' : 'Erro ao consultar o PubChem.'
-                };
+                erro = { tipo: 'falha', mensagem: 'Erro ao obter dados do PubChem.' };
                 estado = 'erro';
             }
         } catch (e) {
@@ -74,7 +111,6 @@
         }
     }
 
-    // Corrigido de 'ejemplo' para 'exemplo'
     function escolherExemplo(exemplo: string) {
         termo = exemplo;
         buscar();
