@@ -32,7 +32,6 @@
         resultado = null;
 
         try {
-            // 1. Busca CID, Fórmula Molecular, Massa Molar e Nome IUPAC direto na API do PubChem
             const urlPubChem = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(nome)}/property/MolecularFormula,MolecularWeight,IUPACName/JSON`;
             const resposta = await fetch(urlPubChem);
 
@@ -43,16 +42,18 @@
                 const propriedade = dados.PropertyTable?.Properties?.[0];
 
                 if (propriedade) {
-                    // Mapeia os dados brutos da API para o formato que os seus componentes esperam
+                    // Montando o objeto exatamente com as chaves que o Svelte costuma pedir para não dar undefined
                     resultado = {
                         cid: propriedade.CID,
                         nome: nome,
                         nomeIupac: propriedade.IUPACName || 'Não disponível',
-                        formula: propriedade.MolecularFormula,
-                        massaMolar: `${propriedade.MolecularWeight} g/mol`,
-                        // Gera automaticamente a URL da estrutura 2D baseada no CID encontrado
-                        imagemUrl: `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${propriedade.CID}/PNG`
-                    } as unknown as ResultadoConsulta;
+                        formula: propriedade.MolecularFormula || '',
+                        massaMolar: propriedade.MolecularWeight ? `${propriedade.MolecularWeight} g/mol` : 'Não disponível',
+                        imagemUrl: `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${propriedade.CID}/PNG`,
+                        // Caso seu tipo exija propriedades extras, inicializamos vazias para evitar o erro de 'length'
+                        propriedades: [],
+                        sinonimos: []
+                    };
 
                     estado = 'resultado';
                 } else {
@@ -73,8 +74,9 @@
         }
     }
 
+    // Corrigido de 'ejemplo' para 'exemplo'
     function escolherExemplo(exemplo: string) {
-        termo = ejemplo;
+        termo = exemplo;
         buscar();
     }
 </script>
