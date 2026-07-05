@@ -1,8 +1,7 @@
 <script lang="ts">
 	// Estado inicial (antes de qualquer busca): título-herói, subtítulo,
-	// barra de busca grande e chips de exemplos "Recentes".
+	// barra de busca grande e chips de Favoritos.
 	import BarraBusca from './BarraBusca.svelte';
-	import ChipExemplo from './ChipExemplo.svelte';
 	import ChipFavorito from './ChipFavorito.svelte';
 	import { favoritos } from '$lib/stores/favorites.svelte';
 
@@ -24,9 +23,6 @@
 		aoSelecionar,
 		aoFechar
 	}: Props = $props();
-
-	// Exemplos típicos de uma indústria de tintas (do próprio design).
-	const recentes = ['dióxido de titânio', 'tolueno', 'butilglicol'];
 </script>
 
 <div class="vazio">
@@ -35,16 +31,9 @@
 
 	<BarraBusca bind:valor {aoBuscar} {aoDigitar} {sugestoes} {aoSelecionar} {aoFechar} />
 
-	<div class="recentes">
-		<span class="rotulo-recentes">Recentes:</span>
-		{#each recentes as termo (termo)}
-			<ChipExemplo rotulo={termo} aoEscolher={aoEscolherExemplo} />
-		{/each}
-	</div>
-
 	{#if favoritos.itens.length > 0}
 		<div class="favoritos">
-			<span class="rotulo-recentes">Favoritos:</span>
+			<span class="rotulo-favoritos">Favoritos:</span>
 			{#each favoritos.itens as fav (fav.cid)}
 				<ChipFavorito
 					rotulo={fav.nome}
@@ -80,7 +69,6 @@
 		max-width: 430px;
 		line-height: 1.5;
 	}
-	.recentes,
 	.favoritos {
 		display: flex;
 		flex-wrap: wrap;
@@ -89,10 +77,7 @@
 		margin-top: 24px;
 		align-items: center;
 	}
-	.favoritos {
-		margin-top: 14px;
-	}
-	.rotulo-recentes {
+	.rotulo-favoritos {
 		font:
 			600 13px var(--fonte-ui);
 		color: #727f87;

@@ -1,13 +1,16 @@
 <script lang="ts">
 	// Logotipo do cabeçalho: o quadradinho de acento com "Ci" + o nome da
-	// ferramenta e a linha de contexto ("LABORATÓRIO · INDÚSTRIA DE TINTAS").
+	// ferramenta e a frase que descreve o app.
 </script>
 
 <div class="logo">
 	<div class="marca" aria-hidden="true">Ci</div>
 	<div class="textos">
-		<span class="titulo">Consulta de Insumo Químico</span>
-		<span class="subtitulo">LABORATÓRIO · INDÚSTRIA DE TINTAS</span>
+		<span class="titulo">Chem Check</span>
+		<span class="subtitulo"
+			>Consulta rápida de propriedades físico-químicas e segurança de insumos
+			químicos, via PubChem.</span
+		>
 	</div>
 </div>
 
@@ -44,6 +47,13 @@
 		font:
 			500 11px var(--fonte-mono);
 		color: var(--cor-texto-terciario);
-		letter-spacing: 0.08em;
+		letter-spacing: 0.01em;
+		max-width: 340px;
+	}
+	/* Em telas estreitas a frase esconde para não empurrar o cabeçalho. */
+	@media (max-width: 560px) {
+		.subtitulo {
+			display: none;
+		}
 	}
 </style>
