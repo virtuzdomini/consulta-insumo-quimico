@@ -2,6 +2,7 @@
 	// Topo do painel de informações: nome do composto, linha de metadados
 	// (fórmula · massa molar · CAS) e o selo "Identificado".
 	import SeloIdentificado from './SeloIdentificado.svelte';
+	import BotaoFavorito from './BotaoFavorito.svelte';
 	import type { ResultadoConsulta } from '$lib/types';
 
 	interface Props {
@@ -34,7 +35,10 @@
 			</a>
 		</div>
 	</div>
-	<SeloIdentificado />
+	<div class="acoes-topo">
+		<BotaoFavorito {resultado} />
+		<SeloIdentificado />
+	</div>
 </div>
 
 <style>
@@ -44,6 +48,12 @@
 		align-items: flex-start;
 		gap: 16px;
 		margin-bottom: 22px;
+	}
+	.acoes-topo {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		flex-shrink: 0;
 	}
 	.nome {
 		margin: 0 0 10px;

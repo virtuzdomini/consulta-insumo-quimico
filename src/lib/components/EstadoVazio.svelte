@@ -3,6 +3,8 @@
 	// barra de busca grande e chips de exemplos "Recentes".
 	import BarraBusca from './BarraBusca.svelte';
 	import ChipExemplo from './ChipExemplo.svelte';
+	import ChipFavorito from './ChipFavorito.svelte';
+	import { favoritos } from '$lib/stores/favorites.svelte';
 
 	interface Props {
 		valor?: string;
@@ -39,6 +41,19 @@
 			<ChipExemplo rotulo={termo} aoEscolher={aoEscolherExemplo} />
 		{/each}
 	</div>
+
+	{#if favoritos.itens.length > 0}
+		<div class="favoritos">
+			<span class="rotulo-recentes">Favoritos:</span>
+			{#each favoritos.itens as fav (fav.cid)}
+				<ChipFavorito
+					rotulo={fav.nome}
+					aoEscolher={aoEscolherExemplo}
+					aoRemover={() => favoritos.remove(fav.cid)}
+				/>
+			{/each}
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -65,13 +80,17 @@
 		max-width: 430px;
 		line-height: 1.5;
 	}
-	.recentes {
+	.recentes,
+	.favoritos {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: center;
 		gap: 10px;
 		margin-top: 24px;
 		align-items: center;
+	}
+	.favoritos {
+		margin-top: 14px;
 	}
 	.rotulo-recentes {
 		font:
