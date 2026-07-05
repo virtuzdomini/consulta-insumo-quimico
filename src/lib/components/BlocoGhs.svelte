@@ -7,7 +7,7 @@
 	//
 	// Reutiliza o mesmo backend (/api/ghs) e o mesmo cache 24h (chave ciq:ghs:<CID>).
 	import RotuloSecao from './RotuloSecao.svelte';
-	import { lerCacheGhs, gravarCacheGhs } from '$lib/cache';
+	import { buscarGhs } from '$lib/consulta';
 	import { assetGhs, nomeFonteExibicao } from '$lib/ghs';
 	import type { ResultadoGhs } from '$lib/types';
 
@@ -33,34 +33,16 @@
 		estado = 'carregando';
 		dados = null;
 
-		// Cache local primeiro (mesma política das consultas).
-		const cache = lerCacheGhs(cidLocal);
-		if (cache) {
-			aplicar(cache, meu);
-			return;
-		}
-
 		try {
-			const resp = await fetch(`/api/ghs?cid=${cidLocal}`);
+			// buscarGhs já checa o cache 24h antes de ir ao backend.
+			const r = await buscarGhs(cidLocal);
 			if (meu !== idAtual) return;
-			if (!resp.ok) {
-				estado = 'erro';
-				return;
-			}
-			const r = (await resp.json()) as ResultadoGhs;
-			if (meu !== idAtual) return;
-			gravarCacheGhs(cidLocal, r);
-			aplicar(r, meu);
+			dados = r;
+			estado = r.temDados ? 'ok' : 'sem_dados';
 		} catch {
 			if (meu !== idAtual) return;
 			estado = 'erro';
 		}
-	}
-
-	function aplicar(r: ResultadoGhs, meu: number) {
-		if (meu !== idAtual) return;
-		dados = r;
-		estado = r.temDados ? 'ok' : 'sem_dados';
 	}
 
 	function tentarNovamente() {

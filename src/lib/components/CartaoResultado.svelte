@@ -4,6 +4,7 @@
 	// subcomponentes. Recebe o resultado já pronto da página.
 	import VisorEstrutura from './VisorEstrutura.svelte';
 	import CabecalhoResultado from './CabecalhoResultado.svelte';
+	import BarraAcoesFicha from './BarraAcoesFicha.svelte';
 	import GradePropriedades from './GradePropriedades.svelte';
 	import BlocoGhs from './BlocoGhs.svelte';
 	import ListaSinonimos from './ListaSinonimos.svelte';
@@ -24,6 +25,7 @@
 		/>
 		<div class="info">
 			<CabecalhoResultado {resultado} />
+			<BarraAcoesFicha {resultado} />
 			<GradePropriedades propriedades={resultado.propriedades} />
 			<BlocoGhs cid={resultado.cid} />
 			<ListaSinonimos sinonimos={resultado.sinonimos} />

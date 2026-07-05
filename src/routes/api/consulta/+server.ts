@@ -1,27 +1,33 @@
 /*
-  +server.ts — endpoint HTTP GET /api/consulta?nome=...
+  +server.ts — endpoint HTTP GET /api/consulta?nome=... OU ?cid=...
 
   Num arquivo +server.ts, cada função exportada (GET, POST, ...) vira um
-  handler de rota que roda NO SERVIDOR. O navegador (no +page.svelte) só
-  chama /api/consulta?nome=aspirina e recebe JSON de volta — toda a
-  conversa com a PubChem fica escondida aqui.
+  handler de rota que roda NO SERVIDOR. O navegador só chama
+  /api/consulta?nome=aspirina (ou ?cid=1140, usado para reidratar a comparação)
+  e recebe JSON de volta — toda a conversa com a PubChem fica escondida aqui.
 */
 
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { consultarInsumo, ErroPubChem } from '$lib/pubchem';
+import { consultarInsumo, consultarInsumoPorCid, ErroPubChem } from '$lib/pubchem';
 
 export const GET: RequestHandler = async ({ url }) => {
-	// Lê o parâmetro ?nome= da URL.
 	const nome = url.searchParams.get('nome')?.trim() ?? '';
+	const cidBruto = url.searchParams.get('cid')?.trim() ?? '';
 
-	if (!nome) {
+	if (!nome && !cidBruto) {
 		// 400 = requisição malformada (faltou o termo de busca).
-		throw error(400, 'Parâmetro "nome" é obrigatório.');
+		throw error(400, 'Informe "nome" ou "cid".');
+	}
+
+	// Valida o CID FORA do try — senão o error(400) cairia no catch e viraria 502.
+	const cid = cidBruto ? Number(cidBruto) : null;
+	if (cidBruto && (cid == null || !Number.isInteger(cid) || cid <= 0)) {
+		throw error(400, 'Parâmetro "cid" inválido.');
 	}
 
 	try {
-		const resultado = await consultarInsumo(nome);
+		const resultado = cid != null ? await consultarInsumoPorCid(cid) : await consultarInsumo(nome);
 		return json(resultado);
 	} catch (e) {
 		if (e instanceof ErroPubChem) {

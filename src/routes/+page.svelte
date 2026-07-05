@@ -10,7 +10,8 @@
     import EstadoCarregando from '$lib/components/EstadoCarregando.svelte';
     import EstadoErro from '$lib/components/EstadoErro.svelte';
     import CartaoResultado from '$lib/components/CartaoResultado.svelte';
-    import { lerCache, gravarCache } from '$lib/cache';
+    import { lerCache } from '$lib/cache';
+    import { buscarConsultaPorNome, ErroBusca } from '$lib/consulta';
     import { debounce } from '$lib/debounce';
     import type { EstadoBusca, ResultadoConsulta, ErroConsulta } from '$lib/types';
 
@@ -76,7 +77,9 @@
         sugestoes = [];
         erro = null;
 
-        // 1. Cache: se já buscamos isso nas últimas 24h, entrega na hora.
+        // 1. Cache: se já buscamos isso nas últimas 24h, entrega na hora (sem
+        //    piscar "carregando"). O pipeline também checa o cache, mas ler aqui
+        //    evita o flash de loading.
         const emCache = lerCache(nome);
         if (emCache) {
             resultado = emCache;
@@ -88,30 +91,16 @@
         resultado = null;
 
         try {
-            const resposta = await fetch(`/api/consulta?nome=${encodeURIComponent(nome)}`);
+            const dados = await buscarConsultaPorNome(nome);
             if (meuId !== idBuscaAtual) return; // uma busca mais nova já assumiu
-
-            if (!resposta.ok) {
-                // O endpoint devolve { message } via error() do SvelteKit.
-                const corpo = await resposta.json().catch(() => null);
-                const mensagem = corpo?.message ?? 'Não foi possível concluir a consulta.';
-                erro = {
-                    tipo: resposta.status === 404 ? 'nao_encontrado' : 'falha',
-                    mensagem
-                };
-                estado = 'erro';
-                return;
-            }
-
-            const dados = (await resposta.json()) as ResultadoConsulta;
-            if (meuId !== idBuscaAtual) return;
-
             resultado = dados;
             estado = 'resultado';
-            gravarCache(nome, dados);
         } catch (e) {
             if (meuId !== idBuscaAtual) return;
-            erro = { tipo: 'falha', mensagem: 'Sem conexão com o servidor. Verifique a rede.' };
+            erro =
+                e instanceof ErroBusca
+                    ? { tipo: e.tipo, mensagem: e.message }
+                    : { tipo: 'falha', mensagem: 'Sem conexão com o servidor. Verifique a rede.' };
             estado = 'erro';
         }
     }

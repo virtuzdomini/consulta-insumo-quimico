@@ -244,19 +244,18 @@ async function buscarSinonimos(cid: number): Promise<string[]> {
 /*  Orquestração — junta os 3 passos num ResultadoConsulta pronto      */
 /* ------------------------------------------------------------------ */
 
-export async function consultarInsumo(nome: string): Promise<ResultadoConsulta> {
-	const termo = nome.trim();
-	if (!termo) {
-		throw new ErroPubChem('nao_encontrado', 'Informe o nome de uma substância.');
-	}
+type PropsBrutas = Awaited<ReturnType<typeof buscarPropriedades>>;
 
-	// 1) nome -> CID
-	const cid = await resolverCid(termo);
-
-	// 2) e 3) rodam em sequência (o limitador já espaça em 200 ms cada).
-	const props = await buscarPropriedades(cid);
-	const sinonimosBrutos = await buscarSinonimos(cid);
-
+/**
+ * Monta o ResultadoConsulta final a partir das partes já buscadas.
+ * Compartilhado pela consulta por nome e por CID (mesma forma de saída).
+ */
+function montarResultado(
+	cid: number,
+	props: PropsBrutas,
+	sinonimosBrutos: string[],
+	nome: string
+): ResultadoConsulta {
 	// Monta as 4 propriedades do cartão, na ordem do design.
 	const propriedades: Propriedade[] = [
 		{
@@ -284,7 +283,7 @@ export async function consultarInsumo(nome: string): Promise<ResultadoConsulta> 
 
 	return {
 		cid,
-		nome: capitalizar(termo),
+		nome,
 		nomeIupac: props.IUPACName ?? null,
 		formula: props.MolecularFormula ? formatarFormula(props.MolecularFormula) : '—',
 		massaMolar: props.MolecularWeight != null ? `${formatarNumero(props.MolecularWeight)} g/mol` : '—',
@@ -294,6 +293,41 @@ export async function consultarInsumo(nome: string): Promise<ResultadoConsulta> 
 		// Endpoint de imagem 2D. ?image_size=large deixa o PNG mais nítido.
 		imagemUrl: `${BASE}/compound/cid/${cid}/PNG?image_size=large`
 	};
+}
+
+export async function consultarInsumo(nome: string): Promise<ResultadoConsulta> {
+	const termo = nome.trim();
+	if (!termo) {
+		throw new ErroPubChem('nao_encontrado', 'Informe o nome de uma substância.');
+	}
+
+	// 1) nome -> CID
+	const cid = await resolverCid(termo);
+
+	// 2) e 3) rodam em sequência (o limitador já espaça em 200 ms cada).
+	const props = await buscarPropriedades(cid);
+	const sinonimosBrutos = await buscarSinonimos(cid);
+
+	return montarResultado(cid, props, sinonimosBrutos, capitalizar(termo));
+}
+
+/**
+ * Consulta direto por CID (usada para reidratar a comparação a partir da URL
+ * ou do localStorage). Reutiliza os mesmos passos 2 e 3, pulando o resolver
+ * nome→CID. O nome de exibição vem do melhor sinônimo curado, ou do IUPAC.
+ */
+export async function consultarInsumoPorCid(cid: number): Promise<ResultadoConsulta> {
+	if (!Number.isInteger(cid) || cid <= 0) {
+		throw new ErroPubChem('nao_encontrado', 'CID inválido.');
+	}
+
+	const props = await buscarPropriedades(cid);
+	const sinonimosBrutos = await buscarSinonimos(cid);
+
+	const curados = curarSinonimos(sinonimosBrutos);
+	const nome = capitalizar(curados[0] ?? props.IUPACName ?? `CID ${cid}`);
+
+	return montarResultado(cid, props, sinonimosBrutos, nome);
 }
 
 /* ------------------------------------------------------------------ */

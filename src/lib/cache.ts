@@ -16,6 +16,7 @@
 import type { ResultadoConsulta, ResultadoGhs } from './types';
 
 const PREFIXO_CONSULTA = 'ciq:consulta:';
+const PREFIXO_CONSULTA_CID = 'ciq:consulta-cid:';
 const PREFIXO_GHS = 'ciq:ghs:';
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 
@@ -76,6 +77,16 @@ export function lerCache(termo: string): ResultadoConsulta | null {
 
 export function gravarCache(termo: string, dados: ResultadoConsulta): void {
 	gravar(chaveConsulta(termo), dados);
+}
+
+/* ---- Consultas (por CID) — usado ao reidratar comparação a partir de CIDs ---- */
+
+export function lerCacheConsultaCid(cid: number): ResultadoConsulta | null {
+	return ler<ResultadoConsulta>(PREFIXO_CONSULTA_CID + cid);
+}
+
+export function gravarCacheConsultaCid(cid: number, dados: ResultadoConsulta): void {
+	gravar(PREFIXO_CONSULTA_CID + cid, dados);
 }
 
 /* ---- GHS (por CID) — mesma mecânica, espaço de chave separado ---- */
