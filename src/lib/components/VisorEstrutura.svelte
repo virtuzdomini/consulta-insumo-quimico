@@ -46,8 +46,23 @@
 	<div class="acoes">
 		<!-- Cross-origin: o navegador abre o PNG em nova aba; "download" é uma
 		     dica que muitos navegadores respeitam mesmo entre origens. -->
-		<a class="acao" href={imagemUrl} target="_blank" rel="noopener">Ampliar</a>
-		<a class="acao" href={imagemUrl} download={`${nome}.png`}>Baixar PNG</a>
+		<a
+			class="acao"
+			href={imagemUrl}
+			target="_blank"
+			rel="noopener"
+			aria-label="Ampliar estrutura de {nome} em nova aba"
+		>
+			Ampliar
+		</a>
+		<a
+			class="acao"
+			href={imagemUrl}
+			download={`${nome}.png`}
+			aria-label="Baixar imagem PNG da estrutura de {nome}"
+		>
+			Baixar PNG
+		</a>
 	</div>
 </div>
 

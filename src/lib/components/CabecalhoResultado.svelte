@@ -19,6 +19,19 @@
 			{#if resultado.cas}
 				<span class="cas">CAS {resultado.cas}</span>
 			{/if}
+			<a
+				class="pubchem"
+				href="https://pubchem.ncbi.nlm.nih.gov/compound/{resultado.cid}"
+				target="_blank"
+				rel="noopener"
+			>
+				Ver no PubChem
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<path d="M14 5h5v5" />
+					<path d="M19 5 10 14" />
+					<path d="M19 13v6H5V5h6" />
+				</svg>
+			</a>
 		</div>
 	</div>
 	<SeloIdentificado />
@@ -58,6 +71,22 @@
 	.cas {
 		font:
 			500 13px var(--fonte-mono);
-		color: #727f87;
+		color: var(--cor-texto-fraco);
+	}
+	.pubchem {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font:
+			600 13px var(--fonte-ui);
+		color: var(--cor-acento);
+		text-decoration: none;
+		padding: 3px 2px;
+		border-radius: 6px;
+		transition: opacity 0.15s ease;
+	}
+	.pubchem:hover {
+		opacity: 0.8;
+		text-decoration: underline;
 	}
 </style>

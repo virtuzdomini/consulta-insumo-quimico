@@ -4,6 +4,7 @@
 	import Logotipo from './Logotipo.svelte';
 	import IndicadorBase from './IndicadorBase.svelte';
 	import BarraBuscaCompacta from './BarraBuscaCompacta.svelte';
+	import AlternarTema from './AlternarTema.svelte';
 
 	interface Props {
 		mostrarBusca?: boolean; // true quando já saímos do estado vazio
@@ -46,6 +47,7 @@
 		{:else}
 			<IndicadorBase />
 		{/if}
+		<AlternarTema />
 	</div>
 </header>
 

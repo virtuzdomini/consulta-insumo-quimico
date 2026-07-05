@@ -5,6 +5,40 @@
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 
+		<!-- Tema: aplica claro/escuro ANTES da 1ª pintura para não piscar. Lê a
+		     preferência salva ou, na ausência, o prefers-color-scheme do SO. -->
+		<script>
+			(function () {
+				try {
+					var t = localStorage.getItem('ciq:tema');
+					if (t !== 'claro' && t !== 'escuro') {
+						t = window.matchMedia('(prefers-color-scheme: light)').matches
+							? 'claro'
+							: 'escuro';
+					}
+					document.documentElement.setAttribute('data-tema', t);
+				} catch (e) {
+					/* localStorage indisponível: segue no tema padrão (escuro) */
+				}
+			})();
+		</script>
+
+		<!-- Open Graph / meta social: link compartilhado renderiza um cartão decente. -->
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content="Consulta de Insumo Químico" />
+		<meta
+			property="og:description"
+			content="Ficha técnica de insumos químicos direto do PubChem: fórmula, massa molar, estrutura 2D, CAS e propriedades físico-químicas."
+		/>
+		<meta property="og:image" content="%sveltekit.assets%/og-image.svg" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="Consulta de Insumo Químico" />
+		<meta
+			name="twitter:description"
+			content="Ficha técnica de insumos químicos direto do PubChem."
+		/>
+		<meta name="twitter:image" content="%sveltekit.assets%/og-image.svg" />
+
 		<!-- Fontes do design 1b: Manrope (títulos/UI) + IBM Plex Mono (dados/labels).
 		     preconnect acelera o handshake com os servidores do Google Fonts. -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />

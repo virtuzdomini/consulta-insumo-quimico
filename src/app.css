@@ -52,6 +52,42 @@
 	--sombra-cartao: 0 30px 70px -30px rgba(0, 0, 0, 0.7);
 }
 
+/*
+  Tema claro — sobrescreve APENAS as custom properties de cor. Como todos os
+  componentes já consomem essas variáveis, não é preciso duplicar nenhum CSS de
+  componente. O atributo `data-tema="claro"` é setado em <html> por um script
+  inline no app.html (antes da 1ª pintura, evitando "flash" de tema errado).
+*/
+:root[data-tema='claro'] {
+	--cor-canvas: #eaeef1;
+	--cor-fundo: #ffffff;
+	--cor-cabecalho: #f7f9fb;
+	--cor-painel: #ffffff;
+	--cor-painel-elevado: #f2f5f8;
+
+	--cor-borda: #d6dde3;
+	--cor-borda-sutil: #e6ebef;
+	--cor-borda-tracejada: #c2ccd3;
+
+	--cor-acento: #0b7699; /* mais escuro que no dark p/ contraste AA sobre branco */
+	--cor-acento-texto: #ffffff;
+	--cor-acento-suave: rgba(11, 118, 153, 0.1);
+	--cor-acento-borda: rgba(11, 118, 153, 0.35);
+
+	--cor-texto: #1a2229;
+	--cor-texto-secundario: #4f5d67;
+	--cor-texto-terciario: #64707a;
+	--cor-texto-mono: #5a6670;
+	--cor-texto-fraco: #737f88;
+	--cor-chip: #35414a;
+
+	--cor-erro: #c0392b;
+	--cor-erro-suave: rgba(192, 57, 43, 0.08);
+	--cor-erro-borda: rgba(192, 57, 43, 0.3);
+
+	--sombra-cartao: 0 24px 60px -30px rgba(20, 40, 60, 0.28);
+}
+
 * {
 	box-sizing: border-box;
 }

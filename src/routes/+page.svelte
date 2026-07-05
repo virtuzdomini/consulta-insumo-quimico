@@ -240,6 +240,14 @@
             <EstadoErro {erro} termo={termoConsultado} aoTentarNovamente={tentarNovamente} />
         {/if}
     </div>
+
+    <footer class="rodape">
+        <span>
+            Dados via
+            <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a>
+        </span>
+        <a href="/sobre">Sobre</a>
+    </footer>
 </main>
 
 <style>
@@ -256,6 +264,25 @@
     }
     .corpo {
         flex: 1;
+    }
+    .rodape {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 30px;
+        border-top: 1px solid var(--cor-borda-sutil);
+        background: var(--cor-cabecalho);
+        font:
+            500 12px var(--fonte-mono);
+        color: var(--cor-texto-terciario);
+    }
+    .rodape a {
+        color: var(--cor-texto-secundario);
+        text-decoration: none;
+    }
+    .rodape a:hover {
+        color: var(--cor-acento);
     }
     @media (max-width: 720px) {
         .moldura {
