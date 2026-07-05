@@ -20,6 +20,9 @@ SvelteKit), nunca direto do navegador.
   de sugestões, _debounce_ de 300 ms).
 - **Ficha técnica** com fórmula (subscritos), massa molar, CAS, nome IUPAC,
   estrutura 2D (ampliar/baixar), 4 propriedades físico-químicas e sinônimos curados.
+- **Bloco de segurança GHS** (carregado sob demanda): pictogramas de perigo (SVG
+  locais), palavra de advertência, frases H e códigos P, com atribuição da fonte
+  e disclaimer de FDS. Composto sem GHS mostra mensagem neutra.
 - **Link "Ver no PubChem"** e página **Sobre** (fonte dos dados e limitações).
 - **Estado na URL** (`?q=`): deep-link, reload e Voltar/Avançar do navegador.
 - **Atalhos de teclado**: `/` foca a busca, `Esc` limpa/volta ao início.
@@ -68,13 +71,15 @@ src/
 │
 ├── lib/
 │   ├── types.ts                # tipos compartilhados (ResultadoConsulta, EstadoBusca…)
-│   ├── pubchem.ts              # camada server-side: consulta a PUG-REST + rate limit 5 req/s + autocomplete
-│   ├── cache.ts                # cache de consultas no localStorage (TTL 24 h)
+│   ├── pubchem.ts              # camada server-side: PUG-REST + rate limit 5 req/s + autocomplete + GHS (PUG-View)
+│   ├── ghs.ts                  # mapa GHS01–09 → rótulo pt-BR + helpers puros
+│   ├── cache.ts                # cache no localStorage (consultas + GHS), TTL 24 h
 │   ├── debounce.ts             # utilitário de debounce (usado no autocomplete)
 │   └── components/
 │       ├── Cabecalho.svelte           # barra de topo (logo + busca/indicador + tema)
 │       ├── AlternarTema.svelte        # toggle dark/light (persiste no localStorage)
 │       ├── SugestoesBusca.svelte      # dropdown de autocomplete (compartilhado pelas barras)
+│       ├── BlocoGhs.svelte            # bloco de segurança GHS (lazy, estado próprio)
 │       ├── Logotipo.svelte            # marca "Ci" + nome + linha de contexto
 │       ├── IndicadorBase.svelte       # "base online" (estado vazio)
 │       ├── IconeBusca.svelte          # ícone de lupa reutilizável
@@ -99,8 +104,11 @@ src/
     ├── +page.svelte                # TELA PRINCIPAL: runes + estado na URL (?q=) + orquestração
     ├── sobre/+page.svelte          # página "Sobre" (fonte dos dados e limitações)
     ├── api/consulta/+server.ts     # endpoint GET /api/consulta?nome=…
-    └── api/autocomplete/+server.ts # endpoint GET /api/autocomplete?termo=… (sugestões)
+    ├── api/autocomplete/+server.ts # endpoint GET /api/autocomplete?termo=… (sugestões)
+    └── api/ghs/+server.ts          # endpoint GET /api/ghs?cid=… (classificação GHS)
 ```
+
+> Os 9 pictogramas GHS (padrão UN, domínio público) ficam em `static/ghs/`.
 
 ## Como a consulta funciona
 

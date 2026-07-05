@@ -5,6 +5,7 @@
 	import VisorEstrutura from './VisorEstrutura.svelte';
 	import CabecalhoResultado from './CabecalhoResultado.svelte';
 	import GradePropriedades from './GradePropriedades.svelte';
+	import BlocoGhs from './BlocoGhs.svelte';
 	import ListaSinonimos from './ListaSinonimos.svelte';
 	import type { ResultadoConsulta } from '$lib/types';
 
@@ -24,6 +25,7 @@
 		<div class="info">
 			<CabecalhoResultado {resultado} />
 			<GradePropriedades propriedades={resultado.propriedades} />
+			<BlocoGhs cid={resultado.cid} />
 			<ListaSinonimos sinonimos={resultado.sinonimos} />
 		</div>
 	</div>

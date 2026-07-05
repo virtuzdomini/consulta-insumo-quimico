@@ -33,3 +33,10 @@ export function rotuloGhs(codigo: string): string {
 export function assetGhs(codigo: string): string {
 	return `/ghs/${codigo}.svg`;
 }
+
+/** Nome curto e amigável da fonte para atribuição na UI. */
+export function nomeFonteExibicao(fonte: string): string {
+	if (fonte.includes('ECHA')) return 'ECHA C&L';
+	if (fonte.startsWith('Regulation (EC) No 1272/2008')) return 'Regulamento CLP (UE) 1272/2008';
+	return fonte;
+}
