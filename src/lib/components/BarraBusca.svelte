@@ -2,14 +2,28 @@
 	// Barra de busca GRANDE (pílula) do estado vazio.
 	// - `valor` é bindable: o pai (a página) lê e escreve o termo digitado.
 	// - `aoBuscar` é um callback disparado no submit (Enter ou clique no botão).
+	// - `aoDigitar`/`sugestoes`/`aoSelecionar` alimentam o autocomplete (a página
+	//   busca as sugestões com debounce e as devolve por aqui).
 	import IconeBusca from './IconeBusca.svelte';
+	import SugestoesBusca from './SugestoesBusca.svelte';
 
 	interface Props {
 		valor?: string;
 		aoBuscar?: () => void;
+		aoDigitar?: (texto: string) => void;
+		sugestoes?: string[];
+		aoSelecionar?: (termo: string) => void;
+		aoFechar?: () => void;
 	}
 	// $bindable permite `bind:valor` no componente pai (fluxo de duas vias).
-	let { valor = $bindable(''), aoBuscar }: Props = $props();
+	let {
+		valor = $bindable(''),
+		aoBuscar,
+		aoDigitar,
+		sugestoes = [],
+		aoSelecionar,
+		aoFechar
+	}: Props = $props();
 
 	function submeter(evento: SubmitEvent) {
 		evento.preventDefault(); // não recarrega a página
@@ -17,23 +31,32 @@
 	}
 </script>
 
-<form class="barra" onsubmit={submeter} role="search">
-	<IconeBusca tamanho={21} />
-	<input
-		class="entrada"
-		type="text"
-		placeholder="Buscar substância…"
-		bind:value={valor}
-		aria-label="Nome da substância"
-		autocomplete="off"
-	/>
-	<button class="botao" type="submit">Buscar</button>
-</form>
+<div class="campo">
+	<form class="barra" onsubmit={submeter} role="search">
+		<IconeBusca tamanho={21} />
+		<input
+			class="entrada"
+			type="text"
+			placeholder="Buscar substância…"
+			bind:value={valor}
+			oninput={(e) => aoDigitar?.(e.currentTarget.value)}
+			onblur={() => aoFechar?.()}
+			aria-label="Nome da substância"
+			autocomplete="off"
+		/>
+		<button class="botao" type="submit">Buscar</button>
+	</form>
+	<SugestoesBusca {sugestoes} {aoSelecionar} />
+</div>
 
 <style>
-	.barra {
+	.campo {
+		position: relative;
 		width: 660px;
 		max-width: 100%;
+	}
+	.barra {
+		width: 100%;
 		display: flex;
 		align-items: center;
 		gap: 8px;

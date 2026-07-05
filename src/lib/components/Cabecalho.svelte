@@ -9,14 +9,26 @@
 		mostrarBusca?: boolean; // true quando já saímos do estado vazio
 		valor?: string;
 		aoBuscar?: () => void;
+		aoDigitar?: (texto: string) => void;
+		sugestoes?: string[];
+		aoSelecionar?: (termo: string) => void;
+		aoFechar?: () => void;
 	}
-	let { mostrarBusca = false, valor = $bindable(''), aoBuscar }: Props = $props();
+	let {
+		mostrarBusca = false,
+		valor = $bindable(''),
+		aoBuscar,
+		aoDigitar,
+		sugestoes = [],
+		aoSelecionar,
+		aoFechar
+	}: Props = $props();
 </script>
 
 <header class="cabecalho">
 	<Logotipo />
 	{#if mostrarBusca}
-		<BarraBuscaCompacta bind:valor {aoBuscar} />
+		<BarraBuscaCompacta bind:valor {aoBuscar} {aoDigitar} {sugestoes} {aoSelecionar} {aoFechar} />
 	{:else}
 		<IndicadorBase />
 	{/if}

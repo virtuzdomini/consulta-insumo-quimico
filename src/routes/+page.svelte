@@ -8,6 +8,8 @@
     import EstadoCarregando from '$lib/components/EstadoCarregando.svelte';
     import EstadoErro from '$lib/components/EstadoErro.svelte';
     import CartaoResultado from '$lib/components/CartaoResultado.svelte';
+    import { lerCache, gravarCache } from '$lib/cache';
+    import { debounce } from '$lib/debounce';
     import type { EstadoBusca, ResultadoConsulta, ErroConsulta } from '$lib/types';
 
     // ---- Estado reativo (runes) -----------------------------------
@@ -16,109 +18,94 @@
     let estado = $state<EstadoBusca>('vazio'); // vazio | carregando | resultado | erro
     let resultado = $state<ResultadoConsulta | null>(null);
     let erro = $state<ErroConsulta | null>(null);
+    let sugestoes = $state<string[]>([]); // autocomplete
 
     let mostrarBuscaNoCabecalho = $derived(estado !== 'vazio');
     let idBuscaAtual = 0;
 
-    // ---- Ação principal: consultar a API DIRETO DO PUBCHEM ----------
+    // ---- Ação principal: consulta via /api/consulta ----------------
+    // Todo o trabalho pesado (resolver nome→CID, formatar fórmula em subscrito,
+    // extrair CAS, curar sinônimos, respeitar o rate-limit) vive no servidor,
+    // em $lib/pubchem.ts. Aqui só cuidamos de estado de tela e cache.
     async function buscar() {
         const nomeOriginal = termo.trim();
         if (!nomeOriginal) return;
 
         const meuId = ++idBuscaAtual;
         termoConsultado = nomeOriginal;
-        estado = 'carregando';
+        sugestoes = [];
         erro = null;
+
+        // 1. Cache: se já buscamos isso nas últimas 24h, entrega na hora.
+        const emCache = lerCache(nomeOriginal);
+        if (emCache) {
+            resultado = emCache;
+            estado = 'resultado';
+            return;
+        }
+
+        estado = 'carregando';
         resultado = null;
 
         try {
-            // 1. Tenta buscar o CID (ID do Composto). O PubChem aceita nomes comuns em português aqui
-            const urlCid = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(nomeOriginal)}/cids/JSON`;
-            const respostaCid = await fetch(urlCid);
-            
-            if (meuId !== idBuscaAtual) return;
+            const resposta = await fetch(`/api/consulta?nome=${encodeURIComponent(nomeOriginal)}`);
+            if (meuId !== idBuscaAtual) return; // uma busca mais nova já assumiu
 
-            if (!respostaCid.ok) {
-                erro = { tipo: 'nao_encontrado', mensagem: 'Substância não encontrada na base do PubChem.' };
+            if (!resposta.ok) {
+                // O endpoint devolve { message } via error() do SvelteKit.
+                const corpo = await resposta.json().catch(() => null);
+                const mensagem = corpo?.message ?? 'Não foi possível concluir a consulta.';
+                erro = {
+                    tipo: resposta.status === 404 ? 'nao_encontrado' : 'falha',
+                    mensagem
+                };
                 estado = 'erro';
                 return;
             }
 
-            const dadosCid = await respostaCid.json();
-            const cid = dadosCid.IdentifierList?.CID?.[0];
-
-            if (!cid) {
-                erro = { tipo: 'nao_encontrado', mensagem: 'Substância não encontrada.' };
-                estado = 'erro';
-                return;
-            }
-
-            // 2. Requisições paralelas para buscar as propriedades físicas e sinônimos
-            const urlPropriedades = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/property/MolecularFormula,MolecularWeight,IUPACName/JSON`;
-            const urlSinonimos = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/synonyms/JSON`;
-
-            const [respProps, respSinos] = await Promise.all([
-                fetch(urlPropriedades),
-                fetch(urlSinonimos)
-            ]);
-
+            const dados = (await resposta.json()) as ResultadoConsulta;
             if (meuId !== idBuscaAtual) return;
 
-            if (respProps.ok) {
-                const dadosProps = await respProps.json();
-                const dadosSinos = respSinos.ok ? await respSinos.json() : {};
-                
-                const propriedade = dadosProps.PropertyTable?.Properties?.[0];
-                const listaSinonimosRaw: string[] = dadosSinos.InformationList?.Information?.[0]?.Synonym || [];
-
-                if (propriedade) {
-                    // 3. Montando a lista de propriedades formatadas de maneira limpa
-                    const propriedadesFormatadas = [
-                        { nome: 'Massa Molar', valor: propriedade.MolecularWeight ? `${propriedade.MolecularWeight} g/mol` : 'Não disponível' },
-                        { nome: 'Fórmula Molecular', valor: propriedade.MolecularFormula || 'Não disponível' },
-                        { nome: 'ID do Composto (CID)', valor: String(propriedade.CID) }
-                    ];
-
-                    // 4. PENTE FINO ANTI-DUPLICADAS: Filtra duplicatas textuais ignorando maiúsculas/minúsculas
-                    const vistos = new Set<string>();
-                    const sinonimosLimpos: string[] = [];
-
-                    for (const sin of listaSinonimosRaw) {
-                        const normalizado = sin.trim().toLowerCase();
-                        if (!vistos.has(normalizado)) {
-                            vistos.add(normalizado);
-                            sinonimosLimpos.push(sin.trim()); // mantém a grafia original visualmente
-                        }
-                    }
-
-                    // Pegamos os 5 primeiros sinônimos higienizados
-                    const sinonimosFormatados = sinonimosLimpos.slice(0, 5);
-
-                    resultado = {
-                        cid: propriedade.CID,
-                        nome: nomeOriginal.toUpperCase(),
-                        nomeIupac: propriedade.IUPACName || 'Não disponível',
-                        formula: propriedade.MolecularFormula || '',
-                        massaMolar: propriedade.MolecularWeight ? `${propriedade.MolecularWeight} g/mol` : 'Não disponível',
-                        imagemUrl: `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${propriedade.CID}/PNG`,
-                        propriedades: propriedadesFormatadas,
-                        sinonimos: sinonimosFormatados
-                    };
-
-                    estado = 'resultado';
-                } else {
-                    erro = { tipo: 'nao_encontrado', mensagem: 'Erro ao processar as propriedades da substância.' };
-                    estado = 'erro';
-                }
-            } else {
-                erro = { tipo: 'falha', mensagem: 'Erro ao obter dados do PubChem.' };
-                estado = 'erro';
-            }
+            resultado = dados;
+            estado = 'resultado';
+            gravarCache(nomeOriginal, dados);
         } catch (e) {
             if (meuId !== idBuscaAtual) return;
-            erro = { tipo: 'falha', mensagem: 'Sem conexão com a base do PubChem. Verifique a rede.' };
+            erro = { tipo: 'falha', mensagem: 'Sem conexão com o servidor. Verifique a rede.' };
             estado = 'erro';
         }
+    }
+
+    // ---- Autocomplete ---------------------------------------------
+    // Debounce de 300 ms: só consulta as sugestões quando o usuário para de
+    // digitar, evitando uma requisição por tecla.
+    const buscarSugestoes = debounce(async (texto: string) => {
+        const t = texto.trim();
+        if (t.length < 2) {
+            sugestoes = [];
+            return;
+        }
+        try {
+            const resp = await fetch(`/api/autocomplete?termo=${encodeURIComponent(t)}`);
+            sugestoes = resp.ok ? await resp.json() : [];
+        } catch {
+            sugestoes = []; // autocomplete é opcional; falha em silêncio
+        }
+    }, 300);
+
+    function aoDigitar(texto: string) {
+        buscarSugestoes(texto);
+    }
+
+    function escolherSugestao(sugestao: string) {
+        termo = sugestao;
+        buscar();
+    }
+
+    // Fecha o dropdown ao sair do campo (pequeno atraso deixa o clique numa
+    // sugestão registrar antes de a lista sumir).
+    function fecharSugestoes() {
+        setTimeout(() => (sugestoes = []), 120);
     }
 
     function escolherExemplo(exemplo: string) {
@@ -140,11 +127,23 @@
         mostrarBusca={mostrarBuscaNoCabecalho}
         bind:valor={termo}
         aoBuscar={buscar}
+        aoDigitar={aoDigitar}
+        {sugestoes}
+        aoSelecionar={escolherSugestao}
+        aoFechar={fecharSugestoes}
     />
 
     <div class="corpo">
         {#if estado === 'vazio'}
-            <EstadoVazio bind:valor={termo} aoBuscar={buscar} aoEscolherExemplo={escolherExemplo} />
+            <EstadoVazio
+                bind:valor={termo}
+                aoBuscar={buscar}
+                aoEscolherExemplo={escolherExemplo}
+                aoDigitar={aoDigitar}
+                {sugestoes}
+                aoSelecionar={escolherSugestao}
+                aoFechar={fecharSugestoes}
+            />
         {:else if estado === 'carregando'}
             <EstadoCarregando termo={termoConsultado} />
         {:else if estado === 'resultado' && resultado}

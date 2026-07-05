@@ -8,8 +8,20 @@
 		valor?: string;
 		aoBuscar?: () => void;
 		aoEscolherExemplo?: (termo: string) => void;
+		aoDigitar?: (texto: string) => void;
+		sugestoes?: string[];
+		aoSelecionar?: (termo: string) => void;
+		aoFechar?: () => void;
 	}
-	let { valor = $bindable(''), aoBuscar, aoEscolherExemplo }: Props = $props();
+	let {
+		valor = $bindable(''),
+		aoBuscar,
+		aoEscolherExemplo,
+		aoDigitar,
+		sugestoes = [],
+		aoSelecionar,
+		aoFechar
+	}: Props = $props();
 
 	// Exemplos típicos de uma indústria de tintas (do próprio design).
 	const recentes = ['dióxido de titânio', 'tolueno', 'butilglicol'];
@@ -19,7 +31,7 @@
 	<h2 class="titulo">O que você quer<br />consultar hoje?</h2>
 	<p class="subtitulo">Nome, sinônimo ou número CAS. A ficha técnica aparece em segundos.</p>
 
-	<BarraBusca bind:valor {aoBuscar} />
+	<BarraBusca bind:valor {aoBuscar} {aoDigitar} {sugestoes} {aoSelecionar} {aoFechar} />
 
 	<div class="recentes">
 		<span class="rotulo-recentes">Recentes:</span>

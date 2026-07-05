@@ -18,6 +18,8 @@
 import type { Propriedade, ResultadoConsulta } from './types';
 
 const BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug';
+// O autocomplete fica FORA do PUG-REST (caminho /rest/autocomplete/...).
+const BASE_AUTOCOMPLETE = 'https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound';
 
 /* ------------------------------------------------------------------ */
 /*  Limitador de taxa: no máximo 5 requisições por segundo (1 a cada  */
@@ -156,6 +158,10 @@ interface RespostaSinonimos {
 	};
 }
 
+interface RespostaAutocomplete {
+	dictionary_terms?: { compound?: string[] };
+}
+
 /* ------------------------------------------------------------------ */
 /*  Erro tipado — o +server.ts usa `tipo` para escolher o status HTTP */
 /* ------------------------------------------------------------------ */
@@ -285,4 +291,23 @@ export async function consultarInsumo(nome: string): Promise<ResultadoConsulta> 
 		// Endpoint de imagem 2D. ?image_size=large deixa o PNG mais nítido.
 		imagemUrl: `${BASE}/compound/cid/${cid}/PNG?image_size=large`
 	};
+}
+
+/* ------------------------------------------------------------------ */
+/*  Autocomplete — sugestões de nomes conforme o usuário digita        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Sugere nomes de compostos a partir de um prefixo, usando o endpoint de
+ * autocomplete do PubChem (bem mais rápido que resolver o composto inteiro).
+ * É best-effort: qualquer falha vira lista vazia, sem quebrar a digitação.
+ */
+export async function sugerir(termo: string, limite = 8): Promise<string[]> {
+	const t = termo.trim();
+	if (t.length < 2) return []; // 1 letra gera ruído demais
+	const url = `${BASE_AUTOCOMPLETE}/${encodeURIComponent(t)}/json?limit=${limite}`;
+	const resp = await requisitar(url);
+	if (!resp.ok) return [];
+	const dados = (await resp.json()) as RespostaAutocomplete;
+	return dados.dictionary_terms?.compound ?? [];
 }
