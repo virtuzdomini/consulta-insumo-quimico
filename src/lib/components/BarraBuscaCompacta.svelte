@@ -34,6 +34,7 @@
 		<input
 			class="entrada"
 			type="text"
+			data-campo-busca
 			bind:value={valor}
 			oninput={(e) => aoDigitar?.(e.currentTarget.value)}
 			onblur={() => aoFechar?.()}

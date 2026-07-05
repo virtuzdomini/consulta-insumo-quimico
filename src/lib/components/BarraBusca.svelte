@@ -38,6 +38,7 @@
 			class="entrada"
 			type="text"
 			placeholder="Buscar substância…"
+			data-campo-busca
 			bind:value={valor}
 			oninput={(e) => aoDigitar?.(e.currentTarget.value)}
 			onblur={() => aoFechar?.()}
