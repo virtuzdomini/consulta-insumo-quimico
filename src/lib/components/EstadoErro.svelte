@@ -42,14 +42,9 @@
 			{/if}
 		</h3>
 
-		<p class="mensagem">
-			{#if naoEncontrado}
-				Verifique a grafia ou tente um sinônimo/número CAS. A base cobre nomes em
-				inglês e português.
-			{:else}
-				{erro.mensagem}
-			{/if}
-		</p>
+		<!-- A mensagem vem do servidor. No "não encontrado" ela é ORIENTATIVA
+		     (sugere nome em inglês, CAS ou fórmula), não um erro genérico. -->
+		<p class="mensagem">{erro.mensagem}</p>
 
 		{#if !naoEncontrado}
 			<button class="botao" type="button" onclick={() => aoTentarNovamente?.()}>

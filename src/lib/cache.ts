@@ -14,6 +14,7 @@
 */
 
 import type { ResultadoConsulta, ResultadoGhs } from './types';
+import { normalizar } from './normalizar';
 
 const PREFIXO_CONSULTA = 'ciq:consulta:';
 const PREFIXO_CONSULTA_CID = 'ciq:consulta-cid:';
@@ -66,9 +67,14 @@ function gravar<T>(chave: string, dados: T): void {
 
 /* ---- Consultas (por termo) ---- */
 
-/** Normaliza o termo para virar chave (ignora caixa e espaços nas pontas). */
+/**
+ * Normaliza o termo para virar chave. Usa a MESMA normalização da busca
+ * (sem acento, minúsculo, espaços colapsados), então "Dióxido de Titânio",
+ * "dióxido de titânio" e "dioxido de titanio" compartilham UMA única entrada
+ * — o cache não duplica por acento/caixa.
+ */
 function chaveConsulta(termo: string): string {
-	return PREFIXO_CONSULTA + termo.trim().toLowerCase();
+	return PREFIXO_CONSULTA + normalizar(termo);
 }
 
 export function lerCache(termo: string): ResultadoConsulta | null {

@@ -17,6 +17,8 @@
 
 import type { Propriedade, ResultadoConsulta, ResultadoGhs, FraseH, NivelAdvertencia } from './types';
 import { extrairCodigoGhs, rotuloGhs } from './ghs';
+import { resolverBusca, normalizar } from './normalizar';
+import { traduzirPtBr } from './data/nomes-ptbr';
 
 const BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug';
 // O autocomplete fica FORA do PUG-REST (caminho /rest/autocomplete/...).
@@ -203,6 +205,29 @@ async function resolverCid(nome: string): Promise<number> {
 	return cid;
 }
 
+/**
+ * Resolve uma FÓRMULA molecular -> CID pelo endpoint fastformula (o endpoint de
+ * nome não entende fórmula). Sensível a maiúsculas/minúsculas: "CO" ≠ "Co".
+ */
+async function resolverCidPorFormula(formula: string): Promise<number> {
+	const url = `${BASE}/compound/fastformula/${encodeURIComponent(formula)}/cids/JSON`;
+	const resp = await requisitar(url);
+
+	if (resp.status === 404) {
+		throw new ErroPubChem('nao_encontrado', `Nenhum composto encontrado para "${formula}".`);
+	}
+	if (!resp.ok) {
+		throw new ErroPubChem('falha', `PubChem respondeu ${resp.status} ao resolver a fórmula.`);
+	}
+
+	const dados = (await resp.json()) as RespostaCids;
+	const cid = dados.IdentifierList?.CID?.[0];
+	if (cid == null) {
+		throw new ErroPubChem('nao_encontrado', `Nenhum composto encontrado para "${formula}".`);
+	}
+	return cid;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Passo 2 — CID -> propriedades físico-químicas                     */
 /* ------------------------------------------------------------------ */
@@ -296,19 +321,38 @@ function montarResultado(
 }
 
 export async function consultarInsumo(nome: string): Promise<ResultadoConsulta> {
-	const termo = nome.trim();
-	if (!termo) {
+	const original = nome.trim();
+	if (!original) {
 		throw new ErroPubChem('nao_encontrado', 'Informe o nome de uma substância.');
 	}
 
-	// 1) nome -> CID
-	const cid = await resolverCid(termo);
+	// CAMADAS A/B/C: decide O QUE (e COMO) consultar a partir do termo digitado.
+	//   - nome/CAS  → endpoint de nome (o PubChem resolve CAS nativamente)
+	//   - fórmula   → endpoint fastformula
+	// O `original` (com acento, como digitado) é preservado só para exibição.
+	const { consulta, tipo } = resolverBusca(original);
+
+	// 1) termo -> CID
+	let cid: number;
+	try {
+		cid = tipo === 'formula' ? await resolverCidPorFormula(consulta) : await resolverCid(consulta);
+	} catch (e) {
+		// Não achou por nenhum caminho: troca o "não encontrado" seco por uma
+		// mensagem que ORIENTA o usuário (CAMADA C), citando o termo original.
+		if (e instanceof ErroPubChem && e.tipo === 'nao_encontrado') {
+			throw new ErroPubChem(
+				'nao_encontrado',
+				`Não encontrei "${original}". Tente o nome em inglês, o número CAS ou a fórmula.`
+			);
+		}
+		throw e;
+	}
 
 	// 2) e 3) rodam em sequência (o limitador já espaça em 200 ms cada).
 	const props = await buscarPropriedades(cid);
 	const sinonimosBrutos = await buscarSinonimos(cid);
 
-	return montarResultado(cid, props, sinonimosBrutos, capitalizar(termo));
+	return montarResultado(cid, props, sinonimosBrutos, capitalizar(original));
 }
 
 /**
@@ -342,7 +386,12 @@ export async function consultarInsumoPorCid(cid: number): Promise<ResultadoConsu
 export async function sugerir(termo: string, limite = 8): Promise<string[]> {
 	const t = termo.trim();
 	if (t.length < 2) return []; // 1 letra gera ruído demais
-	const url = `${BASE_AUTOCOMPLETE}/${encodeURIComponent(t)}/json?limit=${limite}`;
+	// CAMADA A/B: consulta o autocomplete pela forma normalizada e, se o termo
+	// já bater no dicionário PT→EN, pelo nome em inglês — assim "dióxido" e
+	// "tolueno" sugerem os compostos certos.
+	const norm = normalizar(t);
+	const consulta = traduzirPtBr(norm) ?? norm;
+	const url = `${BASE_AUTOCOMPLETE}/${encodeURIComponent(consulta)}/json?limit=${limite}`;
 	const resp = await requisitar(url);
 	if (!resp.ok) return [];
 	const dados = (await resp.json()) as RespostaAutocomplete;
