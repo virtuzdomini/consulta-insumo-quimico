@@ -121,3 +121,25 @@ button {
 	outline: 2px solid var(--cor-acento);
 	outline-offset: 2px;
 }
+
+/*
+  Impressão / "Salvar como PDF": esconde o cromo (cabeçalho, busca, rodapé,
+  bandeja, toasts e botões marcados com data-print-hide) e expande a moldura,
+  deixando só a ficha ou a tabela de comparação.
+*/
+@media print {
+	.cabecalho,
+	.rodape,
+	[data-print-hide] {
+		display: none !important;
+	}
+	.canvas {
+		padding: 0 !important;
+	}
+	.moldura {
+		max-width: none !important;
+		border: none !important;
+		border-radius: 0 !important;
+		box-shadow: none !important;
+	}
+}

@@ -5,39 +5,31 @@
 	import Logotipo from '$lib/components/Logotipo.svelte';
 	import AlternarTema from '$lib/components/AlternarTema.svelte';
 	import { comparacao } from '$lib/stores/comparison.svelte';
-	import type { CompostoComparacao } from '$lib/stores/comparison.svelte';
-	import type { ResultadoConsulta, ResultadoGhs } from '$lib/types';
+	import { toast } from '$lib/stores/toast.svelte';
+	import {
+		LINHAS_COMPARACAO,
+		comparacaoParaMarkdown,
+		comparacaoParaCsv,
+		copiarTexto,
+		baixarArquivo
+	} from '$lib/exportar';
 
-	// Valor de uma propriedade físico-química (por rótulo), já formatado ou "—".
-	function prop(consulta: ResultadoConsulta, rotulo: string): string {
-		const p = consulta.propriedades.find((x) => x.rotulo === rotulo);
-		if (!p || p.valor === '—') return '—';
-		return p.unidade ? `${p.valor} ${p.unidade}` : p.valor;
+	// Linhas de texto da tabela vêm da fonte única (exportar.ts); a estrutura
+	// 2D é uma linha à parte, renderizada como imagem.
+	const linhas = LINHAS_COMPARACAO;
+
+	async function copiarMarkdown() {
+		const ok = await copiarTexto(comparacaoParaMarkdown(comparacao.itens));
+		toast.mostrar(ok ? 'Tabela copiada como Markdown!' : 'Não foi possível copiar.');
 	}
 
-	function advertencia(ghs: ResultadoGhs | null): string {
-		if (!ghs?.temDados || !ghs.advertencia) return '—';
-		return ghs.advertencia === 'perigo' ? 'Perigo' : 'Atenção';
+	function baixarCsv() {
+		baixarArquivo('comparacao.csv', comparacaoParaCsv(comparacao.itens), 'text/csv;charset=utf-8');
 	}
 
-	function nFrasesH(ghs: ResultadoGhs | null): string {
-		if (!ghs?.temDados) return '—';
-		return String(ghs.frasesH.length);
+	function imprimir() {
+		window.print();
 	}
-
-	// Linhas de texto da tabela (a estrutura 2D é uma linha à parte, com imagem).
-	const linhas: { rotulo: string; valor: (c: CompostoComparacao) => string }[] = [
-		{ rotulo: 'Fórmula', valor: (c) => c.consulta.formula },
-		{ rotulo: 'Massa molar', valor: (c) => c.consulta.massaMolar },
-		{ rotulo: 'CAS', valor: (c) => c.consulta.cas ?? '—' },
-		{ rotulo: 'Nome IUPAC', valor: (c) => c.consulta.nomeIupac ?? '—' },
-		{ rotulo: 'logP', valor: (c) => prop(c.consulta, 'logP') },
-		{ rotulo: 'TPSA', valor: (c) => prop(c.consulta, 'TPSA') },
-		{ rotulo: 'Doadores H', valor: (c) => prop(c.consulta, 'Doadores H') },
-		{ rotulo: 'Aceptores H', valor: (c) => prop(c.consulta, 'Aceptores H') },
-		{ rotulo: 'Advertência GHS', valor: (c) => advertencia(c.ghs) },
-		{ rotulo: 'Frases H', valor: (c) => nFrasesH(c.ghs) }
-	];
 </script>
 
 <svelte:head>
@@ -55,7 +47,7 @@
 	<div class="conteudo">
 		<div class="titulo-linha">
 			<h1 class="titulo">Comparação</h1>
-			<a class="voltar" href="/">← Voltar à busca</a>
+			<a class="voltar" href="/" data-print-hide>← Voltar à busca</a>
 		</div>
 
 		{#if comparacao.count === 0}
@@ -63,6 +55,12 @@
 				Nenhum composto na comparação. Volte à busca e use “Adicionar à comparação” numa ficha.
 			</p>
 		{:else}
+			<div class="ferramentas" data-print-hide>
+				<button class="ferr" type="button" onclick={copiarMarkdown}>Copiar Markdown</button>
+				<button class="ferr" type="button" onclick={baixarCsv}>Baixar CSV</button>
+				<button class="ferr" type="button" onclick={imprimir}>Imprimir / PDF</button>
+			</div>
+
 			<div class="rolagem">
 				<table class="tabela">
 					<thead>
@@ -75,6 +73,7 @@
 										<button
 											class="remover"
 											type="button"
+											data-print-hide
 											onclick={() => comparacao.remove(item.consulta.cid)}
 											aria-label="Remover {item.consulta.nome} da comparação"
 											title="Remover coluna"
@@ -179,6 +178,28 @@
 			500 15px var(--fonte-ui);
 		color: var(--cor-texto-secundario);
 		line-height: 1.6;
+	}
+	.ferramentas {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-bottom: 18px;
+	}
+	.ferr {
+		font:
+			600 13px var(--fonte-ui);
+		color: var(--cor-texto-secundario);
+		background: var(--cor-painel);
+		border: 1px solid var(--cor-borda);
+		border-radius: var(--raio-pilula);
+		padding: 9px 16px;
+		transition:
+			color 0.15s ease,
+			border-color 0.15s ease;
+	}
+	.ferr:hover {
+		color: var(--cor-texto);
+		border-color: var(--cor-acento);
 	}
 
 	/* Rola horizontalmente no mobile sem amassar as colunas. */
