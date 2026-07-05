@@ -34,7 +34,7 @@
 
 		<div class="acoes">
 			<button class="limpar" type="button" onclick={() => comparacao.clear()}>Limpar</button>
-			<a class="ver" href="/comparar">Ver comparação</a>
+			<a class="ver" href="/comparar?compare={comparacao.cids().join(',')}">Ver comparação</a>
 		</div>
 	</div>
 {/if}

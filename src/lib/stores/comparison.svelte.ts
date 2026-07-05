@@ -29,6 +29,10 @@ class ComparacaoStore {
 	cheia = $derived(this.itens.length >= LIMITE);
 	readonly limite = LIMITE;
 
+	// CIDs em reidratação no momento — evita corrida entre localStorage e URL
+	// (?compare=) reidratarem o mesmo CID duas vezes.
+	private carregando = new Set<number>();
+
 	constructor() {
 		this.load();
 	}
@@ -111,7 +115,8 @@ class ComparacaoStore {
 	 */
 	async reidratar(cids: number[]) {
 		for (const cid of cids) {
-			if (this.has(cid) || this.itens.length >= LIMITE) continue;
+			if (this.has(cid) || this.carregando.has(cid) || this.itens.length >= LIMITE) continue;
+			this.carregando.add(cid);
 			try {
 				const consulta = await buscarConsultaPorCid(cid);
 				if (this.has(cid) || this.itens.length >= LIMITE) continue;
@@ -120,6 +125,8 @@ class ComparacaoStore {
 				this.itens.push({ consulta, ghs });
 			} catch {
 				// Um CID que não reidratou fica de fora, sem quebrar os demais.
+			} finally {
+				this.carregando.delete(cid);
 			}
 		}
 		this.save();

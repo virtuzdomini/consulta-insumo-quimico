@@ -2,6 +2,8 @@
 	// View de comparação: tabela lado a lado (linhas = propriedades, colunas =
 	// compostos). Lê a store de comparação (fonte única). Trata dados ausentes
 	// com "—" e rola horizontalmente no mobile (sem amassar colunas).
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import Logotipo from '$lib/components/Logotipo.svelte';
 	import AlternarTema from '$lib/components/AlternarTema.svelte';
 	import { comparacao } from '$lib/stores/comparison.svelte';
@@ -17,6 +19,45 @@
 	// Linhas de texto da tabela vêm da fonte única (exportar.ts); a estrutura
 	// 2D é uma linha à parte, renderizada como imagem.
 	const linhas = LINHAS_COMPARACAO;
+
+	// ---- Deep-link ?compare=CID1,CID2,CID3 ----
+	// A URL é a fonte da verdade nesta página: ao abrir/recarregar um link com
+	// ?compare=, reidratamos exatamente aqueles CIDs (via pipeline → cache 24h).
+	let ultimoCompare = '';
+
+	$effect(() => {
+		const param = page.url.searchParams.get('compare') ?? '';
+		if (param === ultimoCompare) return;
+		ultimoCompare = param;
+
+		const cids = param
+			.split(',')
+			.map(Number)
+			.filter((n) => Number.isInteger(n) && n > 0)
+			.slice(0, comparacao.limite);
+		if (cids.length === 0) return; // sem ?compare=: mantém o que veio do localStorage
+
+		const atual = comparacao.cids();
+		const igual = atual.length === cids.length && atual.every((c, i) => c === cids[i]);
+		if (!igual) {
+			comparacao.clear();
+			comparacao.reidratar(cids);
+		}
+	});
+
+	// Reflete o estado atual na URL (após remover uma coluna), para o link
+	// continuar deep-linkável e o reload manter a comparação.
+	function sincronizarUrl() {
+		const cids = comparacao.cids();
+		ultimoCompare = cids.join(','); // evita o $effect reprocessar a própria escrita
+		const q = cids.length ? `?compare=${cids.join(',')}` : '';
+		goto(`/comparar${q}`, { replaceState: true, keepFocus: true, noScroll: true });
+	}
+
+	function removerColuna(cid: number) {
+		comparacao.remove(cid);
+		sincronizarUrl();
+	}
 
 	async function copiarMarkdown() {
 		const ok = await copiarTexto(comparacaoParaMarkdown(comparacao.itens));
@@ -74,7 +115,7 @@
 											class="remover"
 											type="button"
 											data-print-hide
-											onclick={() => comparacao.remove(item.consulta.cid)}
+											onclick={() => removerColuna(item.consulta.cid)}
 											aria-label="Remover {item.consulta.nome} da comparação"
 											title="Remover coluna"
 										>
