@@ -15,11 +15,14 @@
   A imagem 2D NÃO é buscada aqui: é só uma URL que o <img> do navegador carrega.
 */
 
-import type { Propriedade, ResultadoConsulta } from './types';
+import type { Propriedade, ResultadoConsulta, ResultadoGhs, FraseH, NivelAdvertencia } from './types';
+import { extrairCodigoGhs, rotuloGhs } from './ghs';
 
 const BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug';
 // O autocomplete fica FORA do PUG-REST (caminho /rest/autocomplete/...).
 const BASE_AUTOCOMPLETE = 'https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound';
+// GHS vive no PUG-View (texto estruturado por seções), não no PUG-REST.
+const BASE_VIEW = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug_view';
 
 /* ------------------------------------------------------------------ */
 /*  Limitador de taxa: no máximo 5 requisições por segundo (1 a cada  */
@@ -310,4 +313,190 @@ export async function sugerir(termo: string, limite = 8): Promise<string[]> {
 	if (!resp.ok) return [];
 	const dados = (await resp.json()) as RespostaAutocomplete;
 	return dados.dictionary_terms?.compound ?? [];
+}
+
+/* ================================================================== */
+/*  Classificação de segurança GHS (PUG-View)                          */
+/* ================================================================== */
+
+/* ---- Forma bruta do PUG-View (só o que usamos) ---- */
+
+interface MarkupPV {
+	URL?: string;
+	Type?: string;
+	Extra?: string;
+}
+interface StringComMarkupPV {
+	String?: string;
+	Markup?: MarkupPV[];
+}
+interface InfoPV {
+	ReferenceNumber?: number;
+	Name?: string;
+	Value?: { StringWithMarkup?: StringComMarkupPV[] };
+}
+interface SecaoPV {
+	TOCHeading?: string;
+	Section?: SecaoPV[];
+	Information?: InfoPV[];
+}
+interface ReferenciaPV {
+	ReferenceNumber?: number;
+	SourceName?: string;
+}
+interface RespostaPugView {
+	Record?: { Section?: SecaoPV[]; Reference?: ReferenciaPV[] };
+}
+
+/** Resultado vazio (composto sem GHS) — caso NORMAL, não erro. */
+function ghsVazio(): ResultadoGhs {
+	return {
+		temDados: false,
+		fonte: null,
+		pictogramas: [],
+		advertencia: null,
+		frasesH: [],
+		codigosP: []
+	};
+}
+
+/** Acha uma subseção pelo TOCHeading exato. */
+function acharSecao(secoes: SecaoPV[] | undefined, heading: string): SecaoPV | undefined {
+	return secoes?.find((s) => s.TOCHeading === heading);
+}
+
+/**
+ * Parseia uma frase H: "H225 (> 99.9%): Highly Flammable liquid and vapor [Danger …]"
+ * → { codigo: "H225", descricao: "Highly Flammable liquid and vapor", percentual: "> 99.9%" }.
+ */
+function parseFraseH(texto: string): FraseH | null {
+	const codigo = texto.match(/H\d{3}/)?.[0];
+	if (!codigo) return null;
+	// percentual (quando existe) vem entre parênteses e contém "%".
+	const percentual = texto.match(/\(([^)]*%[^)]*)\)/)?.[1]?.trim();
+	// descrição fica entre o primeiro ": " e o " [" (ou o fim da string).
+	let descricao = '';
+	const idx = texto.indexOf(': ');
+	if (idx >= 0) {
+		descricao = texto.slice(idx + 2).trim();
+		const colchete = descricao.indexOf(' [');
+		if (colchete >= 0) descricao = descricao.slice(0, colchete).trim();
+	}
+	return { codigo, descricao, percentual: percentual || undefined };
+}
+
+/** Separa "P210, P233, and P501" em ["P210","P233","P501"] (aceita combos P301+P312). */
+function parseCodigosP(texto: string): string[] {
+	const out: string[] = [];
+	for (const parte of texto.split(',')) {
+		const m = parte.match(/P\d{3}(?:\+P\d{3})*/);
+		if (m) out.push(m[0]);
+	}
+	return out;
+}
+
+/**
+ * Busca e parseia a classificação GHS de um CID.
+ *
+ * Pontos delicados (ver especificação):
+ *  - O array Information REPETE campos por fonte (ReferenceNumber). Escolhemos UMA
+ *    fonte por prioridade de SourceName (ECHA → Regulação 1272/2008 → primeira) e
+ *    ignoramos o resto, para nada aparecer duplicado.
+ *  - Pictogramas vêm no Markup[] (URL do SVG), não no texto.
+ *  - 404 / seção ausente = composto sem GHS: retorna "sem dados" (não é erro).
+ */
+export async function consultarGhs(cid: number): Promise<ResultadoGhs> {
+	const url = `${BASE_VIEW}/data/compound/${cid}/JSON?heading=GHS+Classification`;
+	const resp = await requisitar(url);
+
+	if (resp.status === 404) return ghsVazio(); // sem GHS: normal
+	if (!resp.ok) {
+		throw new ErroPubChem('falha', `PubChem respondeu ${resp.status} ao buscar GHS.`);
+	}
+
+	const dados = (await resp.json()) as RespostaPugView;
+
+	// Record.Section["Safety and Hazards"] → ["Hazards Identification"] → ["GHS Classification"]
+	const seguranca = acharSecao(dados.Record?.Section, 'Safety and Hazards');
+	const perigos = acharSecao(seguranca?.Section, 'Hazards Identification');
+	const ghs = acharSecao(perigos?.Section, 'GHS Classification');
+	const info = ghs?.Information ?? [];
+	if (info.length === 0) return ghsVazio();
+
+	// Mapa ReferenceNumber → SourceName (de Record.Reference[]).
+	const nomePorRef = new Map<number, string>();
+	for (const r of dados.Record?.Reference ?? []) {
+		if (r.ReferenceNumber != null && r.SourceName) nomePorRef.set(r.ReferenceNumber, r.SourceName);
+	}
+
+	// ReferenceNumbers presentes no bloco GHS, na ordem em que aparecem.
+	const refsPresentes: number[] = [];
+	for (const it of info) {
+		if (it.ReferenceNumber != null && !refsPresentes.includes(it.ReferenceNumber)) {
+			refsPresentes.push(it.ReferenceNumber);
+		}
+	}
+
+	// Escolha da fonte POR NOME (números variam por composto).
+	const refEscolhida =
+		refsPresentes.find((n) => nomePorRef.get(n) === 'European Chemicals Agency (ECHA)') ??
+		refsPresentes.find((n) => nomePorRef.get(n)?.startsWith('Regulation (EC) No 1272/2008')) ??
+		refsPresentes[0];
+	if (refEscolhida == null) return ghsVazio();
+
+	const fonte = nomePorRef.get(refEscolhida) ?? null;
+	const itens = info.filter((it) => it.ReferenceNumber === refEscolhida);
+	const porNome = (nome: string) => itens.filter((it) => it.Name === nome);
+
+	// Pictogramas: do Markup[], deduplicados por URL.
+	const pictogramas: ResultadoGhs['pictogramas'] = [];
+	const urlsVistas = new Set<string>();
+	for (const it of porNome('Pictogram(s)')) {
+		for (const m of it.Value?.StringWithMarkup?.[0]?.Markup ?? []) {
+			if (!m.URL || urlsVistas.has(m.URL)) continue;
+			urlsVistas.add(m.URL);
+			const codigo = extrairCodigoGhs(m.URL);
+			if (!codigo) continue;
+			pictogramas.push({ codigo, rotulo: rotuloGhs(codigo), urlPubchem: m.URL });
+		}
+	}
+
+	// Signal → nível de advertência.
+	const signal = porNome('Signal')[0]?.Value?.StringWithMarkup?.[0]?.String?.trim().toLowerCase();
+	let advertencia: NivelAdvertencia | null = null;
+	if (signal === 'danger') advertencia = 'perigo';
+	else if (signal === 'warning') advertencia = 'atencao';
+
+	// Frases H parseadas, deduplicadas por código.
+	const frasesH: FraseH[] = [];
+	const codigosHVistos = new Set<string>();
+	for (const it of porNome('GHS Hazard Statements')) {
+		for (const sw of it.Value?.StringWithMarkup ?? []) {
+			const frase = parseFraseH(sw.String ?? '');
+			if (frase && !codigosHVistos.has(frase.codigo)) {
+				codigosHVistos.add(frase.codigo);
+				frasesH.push(frase);
+			}
+		}
+	}
+
+	// Códigos P, deduplicados.
+	const codigosP: string[] = [];
+	const codigosPVistos = new Set<string>();
+	for (const it of porNome('Precautionary Statement Codes')) {
+		const texto = it.Value?.StringWithMarkup?.[0]?.String ?? '';
+		for (const c of parseCodigosP(texto)) {
+			if (!codigosPVistos.has(c)) {
+				codigosPVistos.add(c);
+				codigosP.push(c);
+			}
+		}
+	}
+
+	const temDados =
+		pictogramas.length > 0 || advertencia != null || frasesH.length > 0 || codigosP.length > 0;
+
+	return temDados
+		? { temDados, fonte, pictogramas, advertencia, frasesH, codigosP }
+		: ghsVazio();
 }
