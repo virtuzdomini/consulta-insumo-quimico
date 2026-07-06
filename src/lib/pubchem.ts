@@ -452,7 +452,7 @@ function acharSecao(secoes: SecaoPV[] | undefined, heading: string): SecaoPV | u
  * Parseia uma frase H: "H225 (> 99.9%): Highly Flammable liquid and vapor [Danger …]"
  * → { codigo: "H225", descricao: "Highly Flammable liquid and vapor", percentual: "> 99.9%" }.
  */
-function parseFraseH(texto: string): FraseH | null {
+export function parseFraseH(texto: string): FraseH | null {
 	const codigo = texto.match(/H\d{3}/)?.[0];
 	if (!codigo) return null;
 	// percentual (quando existe) vem entre parênteses e contém "%".
@@ -469,7 +469,7 @@ function parseFraseH(texto: string): FraseH | null {
 }
 
 /** Separa "P210, P233, and P501" em ["P210","P233","P501"] (aceita combos P301+P312). */
-function parseCodigosP(texto: string): string[] {
+export function parseCodigosP(texto: string): string[] {
 	const out: string[] = [];
 	for (const parte of texto.split(',')) {
 		const m = parte.match(/P\d{3}(?:\+P\d{3})*/);
@@ -479,13 +479,10 @@ function parseCodigosP(texto: string): string[] {
 }
 
 /**
- * Busca e parseia a classificação GHS de um CID.
+ * Busca a classificação GHS de um CID no PUG-View e delega o parsing puro a
+ * `parsearGhs`. Só a parte de REDE (URL, 404, status) vive aqui; a lógica
+ * multi-fonte é testável isoladamente.
  *
- * Pontos delicados (ver especificação):
- *  - O array Information REPETE campos por fonte (ReferenceNumber). Escolhemos UMA
- *    fonte por prioridade de SourceName (ECHA → Regulação 1272/2008 → primeira) e
- *    ignoramos o resto, para nada aparecer duplicado.
- *  - Pictogramas vêm no Markup[] (URL do SVG), não no texto.
  *  - 404 / seção ausente = composto sem GHS: retorna "sem dados" (não é erro).
  */
 export async function consultarGhs(cid: number): Promise<ResultadoGhs> {
@@ -497,8 +494,20 @@ export async function consultarGhs(cid: number): Promise<ResultadoGhs> {
 		throw new ErroPubChem('falha', `PubChem respondeu ${resp.status} ao buscar GHS.`);
 	}
 
-	const dados = (await resp.json()) as RespostaPugView;
+	return parsearGhs((await resp.json()) as RespostaPugView);
+}
 
+/**
+ * Parser PURO da classificação GHS (sem rede) — recebe o JSON do PUG-View e
+ * devolve o `ResultadoGhs` pronto para a UI.
+ *
+ * Pontos delicados (ver especificação):
+ *  - O array Information REPETE campos por fonte (ReferenceNumber). Escolhemos UMA
+ *    fonte por prioridade de SourceName (ECHA → Regulação 1272/2008 → primeira) e
+ *    ignoramos o resto, para nada aparecer duplicado.
+ *  - Pictogramas vêm no Markup[] (URL do SVG), não no texto.
+ */
+export function parsearGhs(dados: RespostaPugView): ResultadoGhs {
 	// Record.Section["Safety and Hazards"] → ["Hazards Identification"] → ["GHS Classification"]
 	const seguranca = acharSecao(dados.Record?.Section, 'Safety and Hazards');
 	const perigos = acharSecao(seguranca?.Section, 'Hazards Identification');

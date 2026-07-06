@@ -8,6 +8,12 @@ node_modules
 .DS_Store
 .netlify
 
+# Playwright
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
+
 # Config local do Claude Code (permissões da máquina) — não versionar.
 .claude/settings.local.json
 vite.config.js.timestamp-*
