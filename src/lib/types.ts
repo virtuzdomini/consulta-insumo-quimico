@@ -81,3 +81,24 @@ export interface ResultadoGhs {
 	frasesH: FraseH[];
 	codigosP: string[];
 }
+
+/* ------------------------------------------------------------------ */
+/*  Artigos cientificos recentes (OpenAlex)                            */
+/* ------------------------------------------------------------------ */
+
+export interface ArtigoRecente {
+	id: string;
+	titulo: string;
+	ano: number | null;
+	dataPublicacao: string | null;
+	fonte: string | null;
+	autores: string[];
+	doi: string | null;
+	url: string;
+	acessoAberto: boolean;
+}
+
+export interface ResultadoArtigos {
+	termo: string;
+	artigos: ArtigoRecente[];
+}

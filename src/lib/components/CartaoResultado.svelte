@@ -7,6 +7,7 @@
 	import BarraAcoesFicha from './BarraAcoesFicha.svelte';
 	import GradePropriedades from './GradePropriedades.svelte';
 	import BlocoGhs from './BlocoGhs.svelte';
+	import BlocoArtigos from './BlocoArtigos.svelte';
 	import ListaSinonimos from './ListaSinonimos.svelte';
 	import type { ResultadoConsulta } from '$lib/types';
 
@@ -28,6 +29,7 @@
 			<BarraAcoesFicha {resultado} />
 			<GradePropriedades propriedades={resultado.propriedades} />
 			<BlocoGhs cid={resultado.cid} />
+			<BlocoArtigos {resultado} />
 			<ListaSinonimos sinonimos={resultado.sinonimos} />
 		</div>
 	</div>

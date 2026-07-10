@@ -27,4 +27,6 @@ test('buscar "Dióxido de Titânio" mostra a ficha', async ({ page }) => {
 		timeout: 30_000
 	});
 	await expect(page.getByRole('link', { name: /Ver no PubChem/i })).toBeVisible();
+	await expect(page.getByText('Artigos recentes', { exact: true })).toBeVisible();
+	await expect(page.getByRole('link', { name: /Google Scholar/i })).toBeVisible();
 });

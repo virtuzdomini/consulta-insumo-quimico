@@ -13,12 +13,13 @@
     - GHS:        `ciq:ghs:<CID>`
 */
 
-import type { ResultadoConsulta, ResultadoGhs } from './types';
+import type { ResultadoArtigos, ResultadoConsulta, ResultadoGhs } from './types';
 import { normalizar } from './normalizar';
 
 const PREFIXO_CONSULTA = 'ciq:consulta:';
 const PREFIXO_CONSULTA_CID = 'ciq:consulta-cid:';
 const PREFIXO_GHS = 'ciq:ghs:';
+const PREFIXO_ARTIGOS = 'ciq:artigos:';
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 
 interface Entrada<T> {
@@ -103,4 +104,14 @@ export function lerCacheGhs(cid: number): ResultadoGhs | null {
 
 export function gravarCacheGhs(cid: number, dados: ResultadoGhs): void {
 	gravar(PREFIXO_GHS + cid, dados);
+}
+
+/* ---- Artigos recentes (por CID) ---- */
+
+export function lerCacheArtigos(cid: number): ResultadoArtigos | null {
+	return ler<ResultadoArtigos>(PREFIXO_ARTIGOS + cid);
+}
+
+export function gravarCacheArtigos(cid: number, dados: ResultadoArtigos): void {
+	gravar(PREFIXO_ARTIGOS + cid, dados);
 }
